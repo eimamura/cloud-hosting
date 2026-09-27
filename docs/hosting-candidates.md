@@ -38,7 +38,7 @@ platform-specific files. Verify each deployment with `tools/smoke-test.sh`.
 
 | # | Project idea | Workload (entry) | Hosting | Method | Complexity | What you learn | Tried | Project dir |
 | - | ------------ | ---------------- | ------- | ------ | ---------- | -------------- | ----- | ----------- |
-| 1 | Root entry page | root `index.html` | GitHub Pages | GitHub Actions | ★☆☆☆☆ | Actions workflow, Pages artifacts | ⬜ | |
+| 1 | Root entry page | root `index.html` | GitHub Pages | GitHub Actions | ★☆☆☆☆ | Actions workflow, Pages artifacts | ✅ 2026-09-27 | [github-pages](../github-pages) |
 | 2 | Static site | `static-site` | Cloudflare Workers Static Assets | `wrangler` CLI, then Git integration | ★☆☆☆☆ | CLI deploy vs Git deploy, edge CDN | ⬜ | |
 | 3 | Serverless API + previews | `hono-api` (vercel) | Vercel | Git integration + preview deploys | ★☆☆☆☆ | Preview environments, instant rollback | ⬜ | |
 | 4 | Edge API | `hono-api` (deno) | Deno Deploy | Git integration | ★☆☆☆☆ | Deno runtime, edge deploy | ⬜ | |
@@ -70,7 +70,7 @@ Best for: SPA, SSG output, plain HTML (including this repo's `index.html`).
 
 | Provider | Rec | Complexity | Free tier | Typical deploy | Notes | Tried |
 | -------- | --- | ---------- | --------- | -------------- | ----- | ----- |
-| GitHub Pages | ★★★ | ★☆☆☆☆ | ✅ | GitHub Actions / branch publish | Static only. Simplest option for the root entry page. | ⬜ |
+| GitHub Pages | ★★★ | ★☆☆☆☆ | ✅ | GitHub Actions / branch publish | Static only. Simplest option for the root entry page. | ✅ [github-pages](../github-pages) |
 | Cloudflare Pages / Workers Static Assets | ★★★ | ★☆☆☆☆ | ✅ | Git integration, `wrangler` CLI | Cloudflare is steering new projects toward Workers with static assets. | ⬜ |
 | Netlify | ★★ | ★☆☆☆☆ | ✅ | Git integration, `netlify` CLI | Preview deploys per PR, forms, redirects. | ⬜ |
 | AWS S3 + CloudFront | ★★ | ★★★☆☆ | 🟡 | CLI / IaC | Good exercise for IaC (bucket, OAC, distribution, ACM cert). | ⬜ |
@@ -345,7 +345,7 @@ Sorted by recommendation within each table. "Tried" marks methods used in at lea
 | ------ | --- | ---------- | ----------- | -------- | ----- |
 | Platform Git integration | ★★★ | ★☆☆☆☆ | Platform watches the repo and builds on push; preview per PR. | Vercel, Netlify, Cloudflare, Render, Railway, Amplify | ⬜ |
 | CLI deploy from local | ★★★ | ★☆☆☆☆ | Upload and build from the developer machine. | `vercel`, `wrangler deploy`, `fly deploy`, `gcloud run deploy`, `firebase deploy` | ⬜ |
-| CI/CD pipeline | ★★★ | ★★☆☆☆ | Build/test in CI, then deploy with provider CLI or API. | GitHub Actions, GitLab CI, Cloud Build, CodePipeline, Azure Pipelines | ⬜ |
+| CI/CD pipeline | ★★★ | ★★☆☆☆ | Build/test in CI, then deploy with provider CLI or API. | GitHub Actions, GitLab CI, Cloud Build, CodePipeline, Azure Pipelines | ✅ github-pages |
 | CI with OIDC federation | ★★★ | ★★★☆☆ | CI authenticates to the cloud without long-lived keys. | GitHub Actions → AWS IAM role / GCP Workload Identity / Azure Federated Credentials | ⬜ |
 | SSH-based push | ★★ | ★★★☆☆ | Copy artifacts or images to a server over SSH. | Kamal, rsync/scp + systemd, Ansible | ⬜ |
 | Git push to remote | ★★ | ★☆☆☆☆ | Push to a special Git remote that builds and releases. | Heroku, Dokku, Hugging Face Spaces | ⬜ |
@@ -356,7 +356,7 @@ Sorted by recommendation within each table. "Tried" marks methods used in at lea
 
 | Format | Rec | Complexity | Description | Examples | Tried |
 | ------ | --- | ---------- | ----------- | -------- | ----- |
-| Static artifacts | ★★★ | ★☆☆☆☆ | Pre-built HTML/JS/CSS uploaded to a CDN. | `vite build`, `astro build` | ⬜ |
+| Static artifacts | ★★★ | ★☆☆☆☆ | Pre-built HTML/JS/CSS uploaded to a CDN. | `vite build`, `astro build` | ✅ github-pages |
 | Dockerfile / OCI image | ★★★ | ★★☆☆☆ | Build image, push to registry, run it. | GHCR, ECR, Artifact Registry, ACR, Docker Hub | ⬜ |
 | Source + buildpacks | ★★ | ★☆☆☆☆ | Platform detects language and builds. | Cloud Native Buildpacks, Heroku, Cloud Run `--source` | ⬜ |
 | Zip / function package | ★★ | ★★☆☆☆ | Bundled code for FaaS. | Lambda zip, Azure Functions zip deploy | ⬜ |

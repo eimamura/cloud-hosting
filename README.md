@@ -33,7 +33,7 @@ tools/smoke-test.sh https://<deployment-url> [--static] [--expect-target <name>]
 
 | Project | Hosting | Workload | URL |
 | ------- | ------- | -------- | --- |
-| _(none yet)_ | | | |
+| [github-pages](./github-pages) | GitHub Pages (GitHub Actions) | root `index.html` | https://eimamura.github.io/cloud-hosting/ |
 
 ## Adding a project
 

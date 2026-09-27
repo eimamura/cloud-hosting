@@ -58,7 +58,15 @@
   <script>
     // Register each project here. Keep in sync with the table in README.md.
     // { name, hosting, stack, url, description }  (stack = workload name, e.g. "hono-api")
-    const projects = [];
+    const projects = [
+      {
+        name: "github-pages",
+        hosting: "GitHub Pages",
+        stack: "root index.html",
+        url: "https://eimamura.github.io/cloud-hosting/",
+        description: "This page, published by GitHub Actions.",
+      },
+    ];
 
     const list = document.getElementById("projects");
     if (projects.length === 0) {
