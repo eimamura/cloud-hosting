@@ -1,0 +1,14 @@
+{
+  "name": "static-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static test site for deployment experiments",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "node build.mjs && npx --yes serve@14 dist"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,71 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.tfvars
+!*.tfvars.example
+
+# Logs / temp
+*.log
+logs/
+tmp/
+temp/
+.cache/
+
+# Node.js
+node_modules/
+.pnpm-store/
+.yarn/*
+!.yarn/releases
+.next/
+.nuxt/
+.svelte-kit/
+.astro/
+.expo/
+.turbo/
+.vercel/
+.netlify/
+.wrangler/
+.parcel-cache/
+dist/
+build/
+out/
+coverage/
+storybook-static/
+
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+*.egg-info/
+.eggs/
+htmlcov/
+.ipynb_checkpoints/
+
+# Infrastructure
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl.bak
+.terragrunt-cache/
+cdk.out/
+.serverless/
+.aws-sam/
+.firebase/
+.fly/

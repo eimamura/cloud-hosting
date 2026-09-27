@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>static-site</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>static-site</h1>
+    <p class="muted">Static workload for deployment experiments.</p>
+    <table id="info"><tbody><tr><td>Loading info.json…</td></tr></tbody></table>
+    <p class="muted"><a href="info.json">info.json</a> · <a href="does-not-exist">404 test</a></p>
+  </main>
+  <script>
+    fetch("info.json", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((info) => {
+        const body = document.querySelector("#info tbody");
+        body.replaceChildren();
+        for (const [key, value] of Object.entries(info)) {
+          const tr = body.insertRow();
+          tr.insertCell().textContent = key;
+          tr.insertCell().textContent = value ?? "—";
+        }
+      })
+      .catch((err) => {
+        document.querySelector("#info td").textContent = `info.json not available (${err.message}). Run the build step.`;
+      });
+  </script>
+</body>
+</html>

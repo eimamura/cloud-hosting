@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloud Hosting Lab</title>
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --card: #ffffff;
+      --text: #1b1b1f;
+      --muted: #6b6b76;
+      --border: #e3e3e8;
+      --accent: #2f6feb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111114;
+        --card: #1b1b20;
+        --text: #ececf1;
+        --muted: #9a9aa6;
+        --border: #2c2c34;
+        --accent: #6ea0ff;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 48px 16px;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { max-width: 880px; margin: 0 auto; }
+    h1 { margin: 0 0 4px; font-size: 1.75rem; }
+    p.lead { margin: 0 0 32px; color: var(--muted); }
+    ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px;
+         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    li a {
+      display: block; height: 100%; padding: 16px 18px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      color: inherit; text-decoration: none;
+    }
+    li a:hover { border-color: var(--accent); }
+    .name { font-weight: 600; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+    .desc { font-size: 0.92rem; margin-top: 8px; }
+    .empty { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Cloud Hosting Lab</h1>
+    <p class="lead">Independent experiments with deployment methods and cloud hosting providers.</p>
+    <ul id="projects"></ul>
+  </main>
+
+  <script>
+    // Register each project here. Keep in sync with the table in README.md.
+    // { name, hosting, stack, url, description }  (stack = workload name, e.g. "hono-api")
+    const projects = [];
+
+    const list = document.getElementById("projects");
+    if (projects.length === 0) {
+      list.outerHTML = '<p class="empty">No projects deployed yet.</p>';
+    } else {
+      for (const p of projects) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = p.url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.innerHTML = '<div class="name"></div><div class="meta"></div><div class="desc"></div>';
+        a.querySelector(".name").textContent = p.name;
+        a.querySelector(".meta").textContent = `${p.hosting} · ${p.stack}`;
+        a.querySelector(".desc").textContent = p.description ?? "";
+        li.appendChild(a);
+        list.appendChild(li);
+      }
+    }
+  </script>
+</body>
+</html>

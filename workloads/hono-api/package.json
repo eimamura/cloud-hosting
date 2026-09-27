@@ -1,0 +1,28 @@
+{
+  "name": "hono-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-runtime web API for deployment experiments",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/entry/node.ts",
+    "build": "npm run build:node && npm run build:lambda",
+    "build:node": "esbuild src/entry/node.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/node.mjs",
+    "build:lambda": "esbuild src/entry/aws-lambda.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/aws-lambda.mjs",
+    "start": "node dist/node.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "hono": "^4.13.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
