@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/entry/node.ts",
-    "build": "npm run build:node && npm run build:lambda",
+    "build": "pnpm run build:node && pnpm run build:lambda",
     "build:node": "esbuild src/entry/node.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/node.mjs",
     "build:lambda": "esbuild src/entry/aws-lambda.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/aws-lambda.mjs",
     "start": "node dist/node.mjs",
