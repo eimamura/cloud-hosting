@@ -24,10 +24,10 @@ deno.json              # Import map for Deno
 ## Local development
 
 ```bash
-npm install
-npm run dev            # Node.js server with reload on http://localhost:8080
-npm run typecheck
-npm run build          # dist/node.mjs and dist/aws-lambda.mjs (single-file bundles)
+pnpm install
+pnpm run dev           # Node.js server with reload on http://localhost:8080
+pnpm run typecheck
+pnpm run build         # dist/node.mjs and dist/aws-lambda.mjs (single-file bundles)
 ```
 
 ## Entry points by platform
@@ -35,11 +35,11 @@ npm run build          # dist/node.mjs and dist/aws-lambda.mjs (single-file bund
 | Platform | Entry | How to wire it up in a deployment project |
 | -------- | ----- | ----------------------------------------- |
 | Docker / Cloud Run / Fly.io / Render / Railway / Azure Container Apps / Kubernetes / VPS | `node.ts` | Build `Dockerfile` with this directory as context. Listens on `PORT` (default 8080). |
-| Container PaaS without Docker (buildpacks, Nixpacks) | `node.ts` | Build command `npm ci && npm run build`, start command `npm start`. |
+| Container PaaS without Docker (buildpacks, Nixpacks) | `node.ts` | Build command `pnpm install --frozen-lockfile && pnpm run build`, start command `pnpm start`. |
 | Cloudflare Workers | `cloudflare.ts` | `wrangler.toml` with `main = "<path>/workloads/hono-api/src/entry/cloudflare.ts"`. |
 | Deno Deploy | `deno.ts` | Entrypoint `workloads/hono-api/src/entry/deno.ts`. Default port 8000 locally. |
 | Bun | `bun.ts` | `bun run src/entry/bun.ts`. Default port 3000. |
-| AWS Lambda | `aws-lambda.ts` | Deploy `dist/aws-lambda.mjs` (after `npm run build:lambda`), handler `aws-lambda.handler`, Node.js 20+ runtime. |
+| AWS Lambda | `aws-lambda.ts` | Deploy `dist/aws-lambda.mjs` (after `pnpm run build:lambda`), handler `aws-lambda.handler`, Node.js 20+ runtime. |
 | Vercel Functions | `vercel.ts` | `api/[[...route]].ts` containing `export * from "<path>/src/entry/vercel.ts"`, plus a rewrite of `/(.*)` to `/api/$1`. |
 | Netlify Functions | `netlify.ts` | `netlify/functions/api.ts` containing `export { default, config } from "<path>/src/entry/netlify.ts"`. |
 
