@@ -1,4 +1,4 @@
-# Deploys the root entry page (index.html) to GitHub Pages.
+# Deploys the root entry page (index.html) and the catalog viewer (catalog.html + docs/) to GitHub Pages.
 # Project docs: github-pages/README.md
 name: github-pages
 
@@ -7,6 +7,11 @@ on:
     branches: [main]
     paths:
       - index.html
+      - catalog.html
+      - docs/**
+      - tools/catalog.py
+      - README.md
+      - '*/README.md'
       - github-pages/**
       - .github/workflows/github-pages.yml
   workflow_dispatch:
@@ -26,10 +31,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+      - name: Validate catalog
+        run: |
+          pip install --quiet pyyaml
+          python tools/catalog.py check
       - name: Assemble site
         run: |
           mkdir -p _site
-          cp index.html _site/
+          cp index.html catalog.html _site/
+          mkdir -p _site/docs
+          cp docs/*.md docs/*.yaml _site/docs/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v5
         with:

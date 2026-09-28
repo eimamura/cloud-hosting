@@ -27,13 +27,31 @@ tools/smoke-test.sh https://<deployment-url> [--static] [--expect-target <name>]
 
 ## Docs
 
-- [Hosting candidates and deployment methods](./docs/hosting-candidates.md)
+All provider facts and all progress live in one file, [`docs/catalog.yaml`](./docs/catalog.yaml): the roadmap,
+every hosting target (hosting, use, commercial terms, price), and every vendor's agent tooling (API / CLI / MCP /
+IaC, human-only steps). Browse it with filters in [`catalog.html`](./catalog.html)
+(published at https://eimamura.github.io/cloud-hosting/catalog.html; locally: `python3 -m http.server`).
+
+- [Catalog data](./docs/catalog.yaml) — single source of truth: roadmap, services, vendors, legends
+- [Hosting guide](./docs/hosting-candidates.md) — roadmap rationale, agent operability principles, deployment methods
+
+Validate after editing, and regenerate the project table below:
+
+```bash
+pip install pyyaml
+tools/catalog.py check   # also runs before every GitHub Pages deploy
+tools/catalog.py sync    # rewrites the Projects table from the roadmap
+```
 
 ## Projects
 
-| Project | Hosting | Workload | URL |
-| ------- | ------- | -------- | --- |
-| [github-pages](./github-pages) | GitHub Pages (GitHub Actions) | root `index.html` | https://eimamura.github.io/cloud-hosting/ |
+Generated from the roadmap in `docs/catalog.yaml` by `tools/catalog.py sync`. Do not edit by hand.
+
+<!-- projects:start -->
+| Project | Hosting | Workload | Status | URL |
+| ------- | ------- | -------- | ------ | --- |
+| [github-pages](./github-pages) | GitHub Pages | root `index.html` | ✅ Done | https://eimamura.github.io/cloud-hosting/ |
+<!-- projects:end -->
 
 ## Adding a project
 

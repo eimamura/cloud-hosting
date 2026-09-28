@@ -1,0 +1,2117 @@
+# Single source of truth for this workspace's hosting catalog. Rendered by /catalog.html (and /index.html);
+# validated by `tools/catalog.py check`. The narrative guide is docs/hosting-candidates.md.
+#
+#   enums      Allowed values and their labels / meanings. catalog.html and tools/catalog.py both read these.
+#   roadmap    Experiments in recommended order. The ONLY place progress is recorded (status, project, url, date);
+#              a service's tried status, the README project table, and the index.html cards are derived from it.
+#   vendors    How far a coding agent can operate each vendor: api, cli (+ token env var), mcp, iac, human-only
+#              steps, rating, checked date, sources.
+#   services   One entry per hosting target: hosting facts, use, commercial terms, price, checked date, pricing
+#              links. `vendor` is a vendor id or a list; `skipped` records why a target will not be tried.
+#
+# Strings may use inline Markdown (links, `code`, **bold**). Price: USD unless stated; † = not confirmed on the
+# official page. When you re-verify an entry, update its `checked` date.
+
+enums:
+  category:
+    static:
+      label: Static site
+    frontend:
+      label: Frontend / SSR
+      description: Framework-aware PaaS
+    serverless:
+      label: Serverless / edge
+    container:
+      label: Container / app PaaS
+    kubernetes:
+      label: Kubernetes
+    vm:
+      label: VM / VPS
+      description: IaaS
+    self-hosted:
+      label: Self-hosted PaaS
+      description: Runs on a VM / VPS
+  free_tier:
+    free:
+      label: ✅ Free tier
+      description: Usable free tier
+    limited:
+      label: 🟡 Limited
+      description: Limited, trial credits, or sleeps when idle
+    paid:
+      label: ❌ Paid only
+    closed:
+      label: ⛔ Closed
+      description: Closed to new customers
+  commercial:
+    allowed:
+      label: ✅ Allowed
+      description: Allowed, including on the free tier (within quotas)
+    paid-plan:
+      label: 🟡 Paid plan
+      description: Allowed only on a paid plan, or the free tier is not suitable for production
+    paid-only:
+      label: 💰 Paid service
+      description: Paid-only service; commercial use is normal
+    closed:
+      label: ⛔ Closed
+      description: Closed to new customers
+    n/a:
+      label: — n/a
+      description: Local tooling, not a hosting service
+  mcp:
+    official-write:
+      label: 🟢 Official
+      description: Official MCP server that can deploy / write
+    official-limited:
+      label: 🟡 Official (limited)
+      description: Official, but read-only, docs-only, or limited
+    community:
+      label: 🔵 Community
+      description: Community servers only
+    none:
+      label: — None
+  rating:
+    Full:
+      label: Full
+      description: Create, deploy, inspect, and tear down are all scriptable headlessly (CLI/API with a token env var).
+    High:
+      label: High
+      description: Almost everything is scriptable; one-off UI steps (Git app install, OAuth consent, IAM bootstrap) or weaker tooling remain.
+    Partial:
+      label: Partial
+      description: Some operations are scriptable, but deploys or key setup regularly need a browser or console.
+    Low:
+      label: Low
+      description: The agent can only push code; deploy and configuration are UI-only.
+  status:
+    todo:
+      label: ⬜ Not tried
+    in-progress:
+      label: 🔄 In progress
+    done:
+      label: ✅ Done
+    skipped:
+      label: ⏭ Skipped
+  complexity:
+    1:
+      label: ★☆☆☆☆
+      description: Minutes. Sign in, connect repo or run one CLI command.
+    2:
+      label: ★★☆☆☆
+      description: An hour or so. A config file, a Dockerfile, or a small platform-specific setup.
+    3:
+      label: ★★★☆☆
+      description: 'Cloud account setup: IAM / permissions, registries, custom domains, CI credentials.'
+    4:
+      label: ★★★★☆
+      description: 'IaC defining many resources: networking, load balancers, databases, secrets.'
+    5:
+      label: ★★★★★
+      description: 'You operate the platform yourself: clusters, servers, upgrades, TLS, monitoring.'
+  rec:
+    1:
+      label: ★
+    2:
+      label: ★★
+    3:
+      label: ★★★
+      description: Recommended first for this lab
+  popularity:
+    1:
+      label: ●○○
+      description: Niche or emerging
+    2:
+      label: ●●○
+      description: Well known in its niche / region
+    3:
+      label: ●●●
+      description: Mainstream, widely known
+
+roadmap:
+
+- n: 1
+  idea: Root entry page
+  workload: root `index.html`
+  hosting: GitHub Pages
+  services:
+  - github-pages
+  method: GitHub Actions
+  complexity: 1
+  learn: Actions workflow, Pages artifacts
+  status: done
+  project: github-pages
+  url: https://eimamura.github.io/cloud-hosting/
+  date: '2026-09-27'
+
+- n: 2
+  idea: Static site
+  workload: '`static-site`'
+  hosting: Cloudflare Workers Static Assets
+  services:
+  - cloudflare-static-assets
+  method: '`wrangler` CLI, then Git integration'
+  complexity: 1
+  learn: CLI deploy vs Git deploy, edge CDN
+  status: todo
+
+- n: 3
+  idea: Serverless API + previews
+  workload: '`hono-api` (vercel)'
+  hosting: Vercel
+  services:
+  - vercel-functions
+  method: Git integration + preview deploys
+  complexity: 1
+  learn: Preview environments, instant rollback
+  status: todo
+
+- n: 4
+  idea: Edge API
+  workload: '`hono-api` (deno)'
+  hosting: Deno Deploy
+  services:
+  - deno-deploy
+  method: Git integration
+  complexity: 1
+  learn: Deno runtime, edge deploy
+  status: todo
+
+- n: 5
+  idea: Python API
+  workload: '`fastapi-app`'
+  hosting: Render
+  services:
+  - render
+  method: Git integration + `render.yaml`
+  complexity: 2
+  learn: Blueprint config, idle sleep
+  status: todo
+
+- n: 6
+  idea: Edge API
+  workload: '`hono-api` (cloudflare)'
+  hosting: Cloudflare Workers
+  services:
+  - cloudflare-workers
+  method: '`wrangler deploy`'
+  complexity: 2
+  learn: Isolates, PoPs (`region` = colo), versions
+  status: todo
+
+- n: 7
+  idea: Container
+  workload: '`hono-api` (Dockerfile)'
+  hosting: Fly.io
+  services:
+  - fly
+  method: '`fly deploy`'
+  complexity: 2
+  learn: Dockerfile, micro-VMs, multi-region (paid, from ~$4/mo)
+  status: todo
+
+- n: 8
+  idea: Python API from source
+  workload: '`fastapi-app`'
+  hosting: Google Cloud Run
+  services:
+  - google-cloud-run
+  method: Buildpacks via `gcloud run deploy --source`
+  complexity: 2
+  learn: Buildpacks, scale to zero, revisions / traffic split
+  status: todo
+
+- n: 9
+  idea: Git-remote deploy
+  workload: '`fastapi-app` (Dockerfile)'
+  hosting: Hugging Face Spaces
+  services:
+  - hugging-face-spaces
+  method: Git push
+  complexity: 1
+  learn: Git-remote deploy, Docker Spaces
+  status: todo
+
+- n: 10
+  idea: Node function
+  workload: '`hono-api` (aws-lambda)'
+  hosting: AWS Lambda + Function URL
+  services:
+  - aws-lambda
+  method: Terraform + GitHub Actions OIDC
+  complexity: 3
+  learn: Terraform state, IAM, keyless CI auth
+  status: todo
+
+- n: 11
+  idea: Python function
+  workload: '`fastapi-app` (ASGI adapter)'
+  hosting: Azure Functions
+  services:
+  - azure-functions
+  method: Bicep + `func` CLI
+  complexity: 3
+  learn: Azure resource model, Bicep
+  status: todo
+
+- n: 12
+  idea: Zero-downtime Docker
+  workload: '`hono-api` (Dockerfile)'
+  hosting: Hetzner VPS
+  services:
+  - kamal
+  - hetzner-cloud
+  method: Kamal
+  complexity: 3
+  learn: SSH deploys, registry, proxy, TLS
+  status: todo
+
+- n: 13
+  idea: Self-hosted PaaS
+  workload: '`fastapi-app` (Dockerfile)'
+  hosting: Coolify on Oracle Always Free VM
+  services:
+  - coolify
+  - oracle-cloud-always-free
+  method: Git push via Coolify
+  complexity: 4
+  learn: Running your own PaaS
+  status: todo
+
+- n: 14
+  idea: Containers on AWS
+  workload: '`hono-api` (Dockerfile)'
+  hosting: ECS Fargate + ALB
+  services:
+  - aws-ecs-on-fargate
+  method: AWS CDK
+  complexity: 4
+  learn: VPC, ALB, task definitions, secrets
+  status: todo
+
+- n: 15
+  idea: Kubernetes GitOps
+  workload: '`hono-api` + `fastapi-app`'
+  hosting: k3s on VPS or GKE Autopilot
+  services:
+  - k3s
+  - gke-autopilot
+  method: Helm + Argo CD
+  complexity: 5
+  learn: Manifests, ingress routing to two services, GitOps sync
+  status: todo
+
+vendors:
+
+  github:
+    name: GitHub
+    api: REST `/repos/{o}/{r}/pages`
+    cli: '`gh` · `GH_TOKEN`'
+    iac: TF `integrations/github`; workflow YAML
+    mcp:
+      status: official-limited
+      detail: '`github/github-mcp-server` (remote, OAuth or PAT). Repo + Actions tools, no Pages-specific tools'
+    human: Custom domain verification
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: GitHub MCP
+      url: https://github.com/github/github-mcp-server
+
+  gitlab:
+    name: GitLab
+    api: REST v4 `/projects/:id/pages`
+    cli: '`glab` · `GITLAB_TOKEN`'
+    iac: TF `gitlabhq/gitlab`; `.gitlab-ci.yml`
+    mcp:
+      status: official-limited
+      detail: '`gitlab.com/api/v4/mcp` (beta, OAuth DCR)'
+    human: Identity verification for CI minutes; MCP consent
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: GitLab MCP
+      url: https://docs.gitlab.com/user/model_context_protocol/mcp_server/
+
+  cloudflare:
+    name: Cloudflare
+    api: Full v4 REST
+    cli: '`wrangler` · `CLOUDFLARE_API_TOKEN` (+ `CLOUDFLARE_ACCOUNT_ID`)'
+    iac: TF `cloudflare/cloudflare`; Pulumi; `wrangler.jsonc`
+    mcp:
+      status: official-write
+      detail: '`mcp.cloudflare.com/mcp` ("Code Mode", whole API) + bindings / builds / observability / docs servers. OAuth or API token'
+    human: Zone nameserver change at registrar
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: Cloudflare MCP
+      url: https://github.com/cloudflare/mcp-server-cloudflare
+
+  vercel:
+    name: Vercel
+    api: REST
+    cli: '`vercel` · `VERCEL_TOKEN` (`vercel deploy --prod --yes`)'
+    iac: TF `vercel/vercel`; `vercel.json`
+    mcp:
+      status: official-write
+      detail: '`mcp.vercel.com` (OAuth only, approved clients incl. Claude Code); can deploy'
+    human: MCP OAuth consent; Git app install
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: Vercel MCP
+      url: https://vercel.com/docs/agent-resources/vercel-mcp
+
+  netlify:
+    name: Netlify
+    api: REST
+    cli: '`netlify` · `NETLIFY_AUTH_TOKEN` (+ `NETLIFY_SITE_ID`)'
+    iac: TF `netlify/netlify` (config/env only); `netlify.toml`
+    mcp:
+      status: official-write
+      detail: '`@netlify/mcp` (local, `NETLIFY_PERSONAL_ACCESS_TOKEN`); create + deploy'
+    human: Git provider link
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: Netlify MCP
+      url: https://github.com/netlify/netlify-mcp
+
+  deno:
+    name: Deno Deploy
+    api: REST v2 (v1 sunset 2026-07-20)
+    cli: '`deno deploy` · `DENO_DEPLOY_TOKEN`'
+    iac: TF `denoland/deno` targets the old API *(unverified for v2)*; `deno.json`
+    mcp:
+      status: community
+      detail: community only; official agent skills in `denoland/skills`
+    human: Org creation in console
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Deno Deploy CLI
+      url: https://docs.deno.com/runtime/reference/cli/deploy/
+
+  supabase:
+    name: Supabase
+    api: Management API
+    cli: '`supabase` · `SUPABASE_ACCESS_TOKEN` (`functions deploy --use-api`)'
+    iac: TF `supabase/supabase`; `supabase/config.toml`
+    mcp:
+      status: official-write
+      detail: '`mcp.supabase.com/mcp` (OAuth or PAT); `deploy_edge_function`, `create_project`, `read_only` mode'
+    human: Billing beyond 2 free projects
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: Supabase MCP
+      url: https://supabase.com/docs/guides/ai-tools/mcp
+
+  valtown:
+    name: Val Town
+    api: REST v1–v3
+    cli: '`vt` · `VAL_TOWN_API_KEY`'
+    iac: None
+    mcp:
+      status: official-write
+      detail: '`api.val.town/v3/mcp` (OAuth); edit, run, deploy vals'
+    human: MCP consent
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Val Town MCP
+      url: https://docs.val.town/guides/prompting/mcp/
+
+  surge:
+    name: Surge
+    api: HTTP API (Basic auth with token)
+    cli: '`surge` · `SURGE_TOKEN` (+ `SURGE_LOGIN`); `surge teardown`'
+    iac: None
+    mcp:
+      status: none
+    human: Email verification link
+    rating: Full
+    rating_note: static only
+    checked: '2026-09-28'
+    sources:
+    - label: Surge automation
+      url: https://surge.sh/docs/cli/automation
+
+  firebase:
+    name: Firebase
+    api: Google Cloud APIs
+    cli: '`firebase` · `GOOGLE_APPLICATION_CREDENTIALS` (`FIREBASE_TOKEN` deprecated; ADC reported flaky in CI)'
+    iac: TF `hashicorp/google(-beta)`; `firebase.json`, `apphosting.yaml`
+    mcp:
+      status: official-write
+      detail: '`npx firebase-tools mcp` (local); `firebase_deploy`; App Hosting tools are list/logs only'
+    human: Service-account key + IAM roles; Blaze billing for App Hosting; GitHub link
+    rating: Partial
+    checked: '2026-09-28'
+    sources:
+    - label: Firebase MCP
+      url: https://firebase.google.com/docs/ai-assistance/mcp-server
+
+  render:
+    name: Render
+    api: REST
+    cli: '`render` · `RENDER_API_KEY`'
+    iac: TF `render-oss/render`; `render.yaml` Blueprints
+    mcp:
+      status: official-write
+      detail: '`mcp.render.com/mcp` (OAuth or API key): create services / Postgres / KV, deploy, env, logs, metrics. **No delete / scaling**'
+    human: Git app install
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Render MCP
+      url: https://render.com/docs/mcp-server
+
+  fly:
+    name: Fly.io
+    api: Machines REST + GraphQL
+    cli: '`flyctl` · `FLY_API_TOKEN`'
+    iac: Official TF provider archived (2024), community fork; `fly.toml`
+    mcp:
+      status: official-limited
+      detail: 'local `fly mcp server`: apps, secrets, logs, machines, volumes. **No deploy**'
+    human: Card *(unverified)*
+    rating: Full
+    rating_note: via CLI; builds from local source, no Git app
+    checked: '2026-09-28'
+    sources:
+    - label: Fly MCP
+      url: https://docs.fly.io/model-context-protocol/flyctl-server
+
+  railway:
+    name: Railway
+    api: GraphQL
+    cli: '`railway` · `RAILWAY_TOKEN` (project) / `RAILWAY_API_TOKEN` (account)'
+    iac: TF community only; `railway.json`
+    mcp:
+      status: official-write
+      detail: '`mcp.railway.com` (OAuth or `railway mcp` using CLI login); create projects/services, deploy, vars. Project tokens rejected'
+    human: Git app install; card after trial *(unverified)*
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: Railway MCP
+      url: https://docs.railway.com/ai/mcp-server
+
+  koyeb:
+    name: Koyeb
+    api: REST
+    cli: '`koyeb` · `KOYEB_TOKEN`'
+    iac: TF `koyeb/koyeb`; Pulumi
+    mcp:
+      status: official-write
+      detail: '`@koyeb/mcp-server` (beta): create apps/services, deploy, logs'
+    human: Git app install
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Koyeb agents
+      url: https://www.koyeb.com/docs/integrations/coding-agents
+
+  northflank:
+    name: Northflank
+    api: REST (UI parity)
+    cli: '`@northflank/cli` · `northflank login -t <token>` (no env var documented)'
+    iac: Native JSON templates with GitOps; TF community only
+    mcp:
+      status: community
+      detail: third-party only; official agent skills in `northflank/skills`
+    human: Card *(unverified)*
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Northflank CLI
+      url: https://northflank.com/docs/v1/api/use-the-cli
+
+  zeabur:
+    name: Zeabur
+    api: GraphQL
+    cli: '`zeabur` · `--token`, `-i=false`'
+    iac: Templates (YAML)
+    mcp:
+      status: official-write
+      detail: '`@zeabur/mcp-server` (`ZEABUR_TOKEN`): create projects, deploy, env, domains, logs'
+    human: Git app install
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Zeabur MCP
+      url: https://zeabur.com/docs/en-US/mcp
+
+  digitalocean:
+    name: DigitalOcean
+    api: REST v2
+    cli: '`doctl` · `DIGITALOCEAN_ACCESS_TOKEN`'
+    iac: TF `digitalocean/digitalocean`; Pulumi; `.do/app.yaml`
+    mcp:
+      status: official-write
+      detail: remote per-service `apps.` / `droplets.` / `doks.mcp.digitalocean.com/mcp` (Bearer token); full create/manage
+    human: Payment method
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: DigitalOcean MCP
+      url: https://docs.digitalocean.com/reference/mcp/configure-mcp/
+
+  heroku:
+    name: Heroku
+    api: Platform API
+    cli: '`heroku` · `HEROKU_API_KEY`'
+    iac: TF `heroku/heroku`; `Procfile`, `app.json`
+    mcp:
+      status: official-write
+      detail: 'remote `mcp.heroku.com/mcp` (OAuth only) and local `@heroku/mcp-server` (API key): create, deploy, scale, add-ons'
+    human: Card required. Platform in "sustaining engineering" mode since 2026-02
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: Heroku MCP
+      url: https://devcenter.heroku.com/articles/heroku-remote-mcp-server
+
+  huggingface:
+    name: Hugging Face
+    api: Hub API (`HfApi.create_repo(repo_type="space")`, hardware, secrets)
+    cli: '`hf` · `HF_TOKEN` (create, then git push / `hf upload`)'
+    iac: README YAML front matter
+    mcp:
+      status: official-limited
+      detail: '`huggingface.co/mcp`: search / read, call Gradio Spaces. Does not deploy'
+    human: Card for paid hardware
+    rating: Full
+    rating_note: via CLI
+    checked: '2026-09-28'
+    sources:
+    - label: Hugging Face MCP
+      url: https://huggingface.co/docs/hub/en/agents-mcp
+
+  streamlit:
+    name: Streamlit Community Cloud
+    api: None
+    cli: None
+    iac: None
+    mcp:
+      status: none
+    human: 'Everything: deploy, secrets, settings in the UI'
+    rating: Low
+    rating_note: agent can only push code
+    checked: '2026-09-28'
+
+  pythonanywhere:
+    name: PythonAnywhere
+    api: REST (beta, 40 req/min)
+    cli: '`pa` · `API_TOKEN` (+ `LOGNAME`)'
+    iac: None
+    mcp:
+      status: official-write
+      detail: '`pythonanywhere-mcp-server`: files, webapps, scheduled tasks'
+    human: Free tier restricts outbound network
+    rating: Partial
+    checked: '2026-09-28'
+    sources:
+    - label: PythonAnywhere MCP
+      url: https://github.com/pythonanywhere/pythonanywhere-mcp-server
+
+  oracle:
+    name: Oracle Cloud
+    api: Full
+    cli: '`oci` · `~/.oci/config` + API signing key (PEM)'
+    iac: TF `oracle/oci`
+    mcp:
+      status: official-write
+      detail: '`oracle/mcp` (reference implementations: `oci-cloud-mcp-server`, `oci-api-mcp-server`, ...)'
+    human: Real credit card; permanent home region; first API key upload; free Arm capacity often unavailable
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: oracle/mcp
+      url: https://github.com/oracle/mcp
+
+  hetzner:
+    name: Hetzner Cloud
+    api: Full
+    cli: '`hcloud` · `HCLOUD_TOKEN`'
+    iac: TF `hetznercloud/hcloud`
+    mcp:
+      status: community
+      detail: community (`dkruyt/mcp-hetzner`, ...)
+    human: Manual account review, possibly ID + selfie; token per project in console
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Hetzner fraud prevention
+      url: https://docs.hetzner.com/general/security-and-identify/fraud-prevention-faq/
+
+  vultr:
+    name: Vultr
+    api: Full (v2)
+    cli: '`vultr-cli` · `VULTR_API_KEY`'
+    iac: TF `vultr/vultr`
+    mcp:
+      status: official-limited
+      detail: '`vultr/vultr-mcp`: 191 tools, **read-only by default**, writes opt-in'
+    human: API key IP allowlist *(unverified)*
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: vultr-mcp
+      url: https://github.com/vultr/vultr-mcp
+
+  akamai:
+    name: Akamai (Linode)
+    api: Full (v4)
+    cli: '`linode-cli` · `LINODE_CLI_TOKEN` (`--no-defaults`)'
+    iac: TF `linode/linode`; Pulumi
+    mcp:
+      status: official-limited
+      detail: '`akamai-cloud-mcp`: read-only inventory / pricing'
+    human: —
+    rating: Full
+    rating_note: via CLI
+    checked: '2026-09-28'
+    sources:
+    - label: akamai-cloud-mcp
+      url: https://github.com/akamai-developers/akamai-cloud-mcp
+
+  sakura:
+    name: Sakura Cloud
+    api: Full
+    cli: '`usacloud` · `SAKURACLOUD_ACCESS_TOKEN` / `_SECRET` / `SAKURACLOUD_ZONE`'
+    iac: TF `sacloud/sakuracloud`
+    mcp:
+      status: none
+      detail: (`sacloud/sacloud-mcp` archived 2026-04-13)
+    human: Phone / card verification *(unverified)*
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: usacloud
+      url: https://docs.usacloud.jp/usacloud/installation/start_guide/
+
+  conoha:
+    name: ConoHa
+    api: OpenStack-compatible v3
+    cli: No official CLI; call the API directly
+    iac: OpenStack TF provider *(unverified)*
+    mcp:
+      status: official-write
+      detail: 'remote `api.conoha.jp/vps/mcp` + OSS `@gmo-internet/conoha-vps-mcp` (experimental): create/delete/resize servers, volumes, security groups'
+    human: API user created in UI
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: ConoHa VPS MCP
+      url: https://github.com/gmo-internet/conoha_vps_mcp
+
+  xserver:
+    name: Xserver VPS
+    api: XServer API (VPS provisioning, power, reinstall)
+    cli: No CLI; REST with `xs_` key
+    iac: None
+    mcp:
+      status: official-write
+      detail: '`npx xserver-mcp --services=vps` (`XSERVER_API_KEY`); provisioning gated by key permission **and** `XSERVER_MCP_ENABLE_HIGH_RISK_EXECUTE=1`, cost confirmation on orders'
+    human: API key scoped per VPS in panel
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Xserver MCP
+      url: https://www.xserver.ne.jp/manual/man_tool_mcp.php
+
+  local-k8s:
+    name: Local Kubernetes (kind / minikube / k3s)
+    cli: CLI + `kubectl`; k3s installs over SSH. No cloud account; needs local Docker / VM (sudo for k3s)
+    mcp:
+      status: community
+      detail: '`containers/kubernetes-mcp-server` (core, helm, ... toolsets; read-only mode) or `Flux159/mcp-server-kubernetes`'
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: kubernetes-mcp-server
+      url: https://github.com/containers/kubernetes-mcp-server
+
+  civo:
+    name: Civo
+    cli: '`civo` · `CIVO_TOKEN`, `civo k3s config` for kubeconfig; TF `civo/civo`'
+    mcp:
+      status: community
+      detail: community `civo-mcp`
+    rating: Full
+    checked: '2026-09-28'
+
+  kamal:
+    name: Kamal
+    cli: CLI over SSH (`kamal setup`, `kamal deploy`)
+    iac: '`config/deploy.yml`, `.kamal/secrets`'
+    mcp:
+      status: none
+    human: SSH key on VM, registry token, DNS
+    rating: Full
+    checked: '2026-09-28'
+    sources:
+    - label: Kamal
+      url: https://kamal-deploy.org/docs/installation/
+
+  dokku:
+    name: Dokku
+    cli: '`ssh dokku@host <cmd>`'
+    iac: '`app.json`, `Procfile`; Ansible role'
+    mcp:
+      status: community
+      detail: early community server *(unverified)*
+    human: '`dokku ssh-keys:add`'
+    rating: Full
+    checked: '2026-09-28'
+
+  coolify:
+    name: Coolify
+    api: REST (scoped Bearer tokens)
+    iac: —
+    mcp:
+      status: official-write
+      detail: built in at `https://<host>/mcp` (needs public HTTPS + API enabled)
+    human: Root user can be set via env at install; **first API token is created in the UI**
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Coolify MCP
+      url: https://coolify.io/docs/mcp/setup
+
+  dokploy:
+    name: Dokploy
+    api: REST (`/swagger`)
+    iac: —
+    mcp:
+      status: official-write
+      detail: '`@dokploy/mcp` (`DOKPLOY_URL` / `DOKPLOY_API_KEY`)'
+    human: '**First admin + API key in the web UI** (no headless install yet)'
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Dokploy MCP
+      url: https://github.com/Dokploy/mcp
+
+  caprover:
+    name: CapRover
+    cli: '`caprover` CLI (`deploy`, `api`)'
+    iac: '`captain-definition`'
+    mcp:
+      status: community
+      detail: '`ivan-saorin/caprover-mcp`'
+    human: '`caprover serversetup` (domain, password), wildcard DNS'
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: CapRover CLI
+      url: https://caprover.com/docs/cli-commands.html
+
+  aws:
+    name: AWS
+    api: Full APIs and SDKs
+    cli: '`aws`, `sam`, `cdk`, `sst`, `amplify`, `eksctl` (Copilot CLI end of support 2026-06-12). Headless auth: Access keys / profile, `aws sso login --use-device-code`, assume-role. Keyless CI: GitHub OIDC → IAM role'
+    mcp:
+      status: official-write
+      detail: '**AWS MCP Server** (managed, remote, GA 2026-05-06): `call_aws` over 15k+ APIs, sandboxed `run_script`, docs. SigV4 via local proxy; scope with IAM. Plus local `awslabs/mcp` servers'
+    iac: Terraform `aws`, Pulumi, CloudFormation, CDK, SAM, SST
+    agent_can: Everything incl. IAM, once credentials exist
+    human: Root MFA, quota approvals, SCPs
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: AWS MCP Server GA
+      url: https://aws.amazon.com/blogs/aws/the-aws-mcp-server-is-now-generally-available/
+    - label: awslabs/mcp
+      url: https://github.com/awslabs/mcp
+
+  gcp:
+    name: Google Cloud
+    api: Full APIs and SDKs
+    cli: '`gcloud`, `gcloud storage`, `kubectl`. Headless auth: Service-account key (`GOOGLE_APPLICATION_CREDENTIALS`), SA impersonation, `gcloud auth login --no-browser`. Keyless CI: GitHub OIDC → Workload Identity Federation'
+    mcp:
+      status: official-write
+      detail: 'Google-hosted remote MCP (OAuth + IAM, `roles/mcp.toolUser`): Cloud Run (deploy, logs), GCE, GKE, Cloud Storage, Resource Manager, docs are GA; gcloud MCP is Preview. Plus OSS `cloud-run-mcp`'
+    iac: Terraform `google`, Pulumi, Infrastructure Manager (Deployment Manager end of support 2026-03-31)
+    agent_can: Everything incl. `gcloud services enable` and billing link (with `billing.user`)
+    human: Org policies, some quota approvals
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Google Cloud MCP
+      url: https://docs.cloud.google.com/mcp/overview
+    - label: Cloud Run MCP
+      url: https://docs.cloud.google.com/run/docs/use-cloud-run-mcp
+    - label: Deployment Manager deprecation
+      url: https://cloud.google.com/deployment-manager/docs/deprecations
+
+  azure:
+    name: Azure
+    api: Full APIs and SDKs
+    cli: '`az`, `azd`, `func`, `swa`, `kubectl`. Headless auth: `az login --service-principal`, `--use-device-code`, managed identity. Keyless CI: GitHub OIDC → Entra federated credential'
+    mcp:
+      status: official-write
+      detail: '**Azure MCP Server 2.0** (GA, OSS, `@azure/mcp`): resources + deploy plans / IaC guidance, Entra auth, RBAC. Remote is self-hosted only. Azure DevOps remote MCP GA'
+    iac: Terraform `azurerm` / `azapi`, Pulumi, Bicep / ARM, azd templates
+    agent_can: Everything incl. `az provider register`
+    human: Tenant / subscription creation, Entra admin consent, app registration for DevOps MCP
+    rating: High
+    checked: '2026-09-28'
+    sources:
+    - label: Azure MCP Server
+      url: https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/overview
+    - label: Azure DevOps remote MCP
+      url: https://learn.microsoft.com/en-us/azure/devops/mcp-server/remote-mcp-server?view=azure-devops
+
+services:
+
+- id: github-pages
+  name: GitHub Pages
+  category: static
+  vendor: github
+  rec: 3
+  complexity: 1
+  free_tier: free
+  deploy: GitHub Actions / branch publish
+  notes: Static only. Simplest option for the root entry page.
+  use: OSS docs, personal sites, project pages
+  popularity: 3
+  commercial: paid-plan
+  commercial_notes: 'ToS: not for running an online business, e-commerce, or SaaS. Business docs / landing pages are fine. Soft limits: 1 GB site, 100 GB/month bandwidth, 10 builds/hour. No SLA.'
+  price: 'Free for public repos. Private repos need a paid plan: Team $4/user/mo (promo, first 12 months)'
+  checked: '2026-09-27'
+  pricing:
+  - label: GitHub
+    url: https://github.com/pricing
+  - label: GitHub Pages limits
+    url: https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits
+
+- id: cloudflare-static-assets
+  name: Cloudflare Pages / Workers Static Assets
+  category: static
+  vendor: cloudflare
+  rec: 3
+  complexity: 1
+  free_tier: free
+  deploy: Git integration, `wrangler` CLI
+  notes: Cloudflare is steering new projects toward Workers with static assets.
+  use: Jamstack sites, SPAs, edge apps
+  popularity: 3
+  commercial: allowed
+  commercial_notes: 'Free tier allows commercial use. Limits: 500 builds/mo, 20k files, 25 MiB/file. Heavy video/large-file delivery should use R2 / Stream.'
+  price: Free; static asset requests free and unlimited. Workers Paid $5/mo minimum
+  checked: '2026-09-27'
+  pricing:
+  - label: Cloudflare Workers
+    url: https://developers.cloudflare.com/workers/platform/pricing/
+  - label: Cloudflare Pages limits
+    url: https://developers.cloudflare.com/pages/platform/limits/
+
+- id: netlify
+  name: Netlify
+  category: static
+  vendor: netlify
+  rec: 2
+  complexity: 1
+  free_tier: free
+  deploy: Git integration, `netlify` CLI
+  notes: Preview deploys per PR, forms, redirects.
+  use: Jamstack sites, marketing sites, agencies
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Free plan allows commercial use within its credit allowance; hard cap, the site is paused when credits run out. SLA only on Enterprise.
+  price: Free 300 credits/mo · Personal $9/mo (1,000 credits) · Pro $20/mo (3,000 credits, unlimited seats). Bandwidth 20 credits/GB, deploy 15 credits
+  checked: '2026-09-27'
+  pricing:
+  - label: Netlify
+    url: https://www.netlify.com/pricing/
+
+- id: aws-s3-cloudfront
+  name: AWS S3 + CloudFront
+  category: static
+  vendor: aws
+  rec: 2
+  complexity: 3
+  free_tier: limited
+  deploy: CLI / IaC
+  notes: Good exercise for IaC (bucket, OAC, distribution, ACM cert).
+  use: Enterprise static assets, media, SPAs
+  popularity: 3
+  commercial: paid-only
+  commercial_notes: Pay-as-you-go; production-grade SLA. Watch data transfer costs.
+  price: S3 $0.023/GB-mo. CloudFront always-free 1 TB + 10M req/mo, then $0.085/GB; or flat-rate Free $0 / Pro $15/mo
+  agent_note: Among the easiest AWS targets for an agent.
+  checked: '2026-09-27'
+  pricing:
+  - label: S3
+    url: https://aws.amazon.com/s3/pricing/
+  - label: CloudFront
+    url: https://aws.amazon.com/cloudfront/pricing/
+
+- id: firebase-hosting
+  name: Firebase Hosting
+  category: static
+  vendor: firebase
+  rec: 2
+  complexity: 1
+  free_tier: free
+  deploy: '`firebase deploy`'
+  notes: Preview channels, CDN.
+  use: Mobile/web app frontends in the Google ecosystem
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Spark (free) plan allows commercial use with storage/transfer quotas; exceeding them requires Blaze.
+  price: 'Spark: 10 GB storage, 360 MB/day transfer. Blaze: $0.026/GB storage, $0.15/GB transfer'
+  checked: '2026-09-27'
+  pricing:
+  - label: Firebase
+    url: https://firebase.google.com/pricing
+
+- id: azure-static-web-apps
+  name: Azure Static Web Apps
+  category: static
+  vendor: azure
+  rec: 2
+  complexity: 2
+  free_tier: free
+  deploy: GitHub Actions (auto-generated)
+  notes: Built-in Functions API backend.
+  use: Enterprise SPAs in Microsoft shops
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: Free plan is intended for hobby / personal projects and stops serving when over quota; Standard plan for production (SLA, custom auth, private endpoints).
+  price: 'Free: 100 GB bandwidth, 250 MB app. Standard ~$9/app/mo, 100 GB incl., then ~$0.20/GB †'
+  agent_note: '`swa deploy --deployment-token` works without any browser step.'
+  checked: '2026-09-27'
+  pricing:
+  - label: Azure SWA
+    url: https://azure.microsoft.com/en-us/pricing/details/app-service/static/
+
+- id: vercel
+  name: Vercel
+  category: static
+  vendor: vercel
+  rec: 1
+  complexity: 1
+  free_tier: free
+  deploy: Git integration, `vercel` CLI
+  notes: Hobby plan is for non-commercial use. Better used for SSR (2.2).
+  use: Next.js / React sites
+  popularity: 3
+  commercial: paid-plan
+  commercial_notes: Hobby plan is **non-commercial personal use only**. Any commercial use requires Pro or Enterprise.
+  price: Hobby $0 (100 GB transfer, 1M edge req). Pro $20/mo incl. 1 deploying seat + $20 usage credit; extra seat $20/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Vercel
+    url: https://vercel.com/pricing
+
+- id: gitlab-pages
+  name: GitLab Pages
+  category: static
+  vendor: gitlab
+  rec: 1
+  complexity: 1
+  free_tier: free
+  deploy: GitLab CI (`pages` job)
+  notes: Requires a GitLab mirror of the repo.
+  use: Docs and sites for GitLab-hosted projects
+  popularity: 2
+  commercial: allowed
+  commercial_notes: Commercial use allowed; free tier CI compute minutes are limited.
+  price: 'Free: 400 CI min/mo, 1 GB per site. Premium $29/user/mo (annual)'
+  checked: '2026-09-27'
+  pricing:
+  - label: GitLab
+    url: https://about.gitlab.com/pricing/
+
+- id: render-static-sites
+  name: Render Static Sites
+  category: static
+  vendor: render
+  rec: 1
+  complexity: 1
+  free_tier: free
+  deploy: Git integration
+  use: Small teams' sites alongside Render services
+  popularity: 2
+  commercial: allowed
+  commercial_notes: Free static sites allowed commercially; bandwidth is shared with the workspace.
+  price: Free on Hobby (5 GB bandwidth, then $0.15/GB). Pro workspace $25/mo flat (25 GB incl.)
+  checked: '2026-09-27'
+  pricing:
+  - label: Render
+    url: https://render.com/pricing
+
+- id: gcs-cloud-cdn
+  name: Google Cloud Storage + Cloud CDN / LB
+  category: static
+  vendor: gcp
+  rec: 1
+  complexity: 3
+  free_tier: limited
+  deploy: '`gcloud` / IaC'
+  notes: Load balancer has a baseline cost.
+  use: GCP-based enterprise static delivery
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: Pay-as-you-go; load balancer has a fixed hourly cost.
+  price: GCS 5 GiB always free, then $0.020/GB-mo †. LB forwarding rule $0.025/hr (~$18/mo). CDN ~$0.08/GiB †
+  checked: '2026-09-27'
+  pricing:
+  - label: Cloud CDN
+    url: https://cloud.google.com/cdn/pricing
+  - label: GCP Load Balancing
+    url: https://cloud.google.com/load-balancing/pricing
+
+- id: surge
+  name: Surge
+  category: static
+  vendor: surge
+  rec: 1
+  complexity: 1
+  free_tier: free
+  deploy: '`surge` CLI'
+  notes: One-command deploy, minimal features.
+  use: Quick prototypes, front-end demos
+  popularity: 1
+  commercial: allowed
+  commercial_notes: Custom SSL, force HTTPS, and redirects require the paid plan.
+  price: Free (custom domain, basic SSL). Professional $30/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Surge
+    url: https://surge.sh/pricing
+
+- id: vercel-ssr
+  name: Vercel
+  category: frontend
+  vendor: vercel
+  rec: 3
+  complexity: 1
+  free_tier: free
+  deploy: Git integration, `vercel` CLI
+  notes: First-class Next.js; Functions + Edge runtime.
+  use: Next.js SSR, e-commerce frontends, startups
+  popularity: 3
+  commercial: paid-plan
+  commercial_notes: Hobby is non-commercial only; Hobby cannot buy extra usage and pauses when over limits.
+  price: 'Hobby $0: 1M invocations, 4 CPU-hr, 360 GB-hr. Pro $20/mo + usage (Active CPU $0.128/hr, $0.15/GB transfer)'
+  checked: '2026-09-27'
+  pricing:
+  - label: Vercel
+    url: https://vercel.com/pricing
+
+- id: cloudflare-workers-ssr
+  name: Cloudflare Workers (OpenNext / framework adapters)
+  category: frontend
+  vendor: cloudflare
+  rec: 2
+  complexity: 2
+  free_tier: free
+  deploy: '`wrangler deploy`'
+  notes: SSR at the edge; Node.js compatibility flags.
+  use: Edge SSR, global low-latency apps
+  popularity: 2
+  commercial: allowed
+  commercial_notes: 'Free tier: 10 ms CPU per request; Paid plan needed for heavier SSR. Some Node.js APIs unsupported.'
+  price: Free 100k req/day. Paid $5/mo incl. 10M req + 30M CPU-ms, then $0.30/1M req, $0.02/1M CPU-ms
+  checked: '2026-09-27'
+  pricing:
+  - label: Cloudflare Workers
+    url: https://developers.cloudflare.com/workers/platform/pricing/
+
+- id: netlify-ssr
+  name: Netlify
+  category: frontend
+  vendor: netlify
+  rec: 2
+  complexity: 1
+  free_tier: free
+  deploy: Git integration, `netlify` CLI
+  notes: Framework adapters, Netlify Functions / Edge Functions.
+  use: Framework SSR, agencies, content sites
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Free tier commercial OK within credits; functions have execution time limits.
+  price: Same plans as 3.1. Compute 10 credits/GB-hr
+  checked: '2026-09-27'
+  pricing:
+  - label: Netlify
+    url: https://www.netlify.com/pricing/
+
+- id: aws-amplify-hosting
+  name: AWS Amplify Hosting
+  category: frontend
+  vendor: aws
+  rec: 2
+  complexity: 2
+  free_tier: limited
+  deploy: Git integration
+  notes: SSR support for Next.js on AWS.
+  use: AWS-centric teams, mobile + web
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: Pay-as-you-go after the monthly free allowance; production use normal.
+  price: 'Free/mo: 1,000 build min, 15 GB served, 500k SSR req. Then $0.01/build-min, $0.15/GB, SSR $0.30/1M req'
+  agent_note: Connecting a repo needs the GitHub App installed in a browser; manual zip deploys avoid it.
+  checked: '2026-09-27'
+  pricing:
+  - label: Amplify
+    url: https://aws.amazon.com/amplify/pricing/
+
+- id: sst
+  name: SST (on your AWS account)
+  category: frontend
+  vendor: aws
+  rec: 2
+  complexity: 3
+  free_tier: limited
+  deploy: '`sst deploy`'
+  notes: IaC-driven framework deployments to AWS.
+  use: Startups building on their own AWS account
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: Open source tool (free); you pay AWS for resources.
+  price: Framework free. Console free up to 350 resources, then $0.086/resource
+  agent_note: '`sst deploy` uses the standard AWS credential chain; fully headless.'
+  checked: '2026-09-27'
+  pricing:
+  - label: SST Console
+    url: https://sst.dev/docs/console/
+
+- id: firebase-app-hosting
+  name: Firebase App Hosting
+  category: frontend
+  vendor: firebase
+  rec: 1
+  complexity: 2
+  free_tier: limited
+  deploy: Git integration
+  notes: Next.js / Angular SSR on Cloud Run under the hood. Requires Blaze plan.
+  use: Next.js / Angular on Google Cloud
+  popularity: 1
+  commercial: paid-only
+  commercial_notes: Requires Blaze (pay-as-you-go) plan.
+  price: 'Free/mo on Blaze: 2M req, 10 GiB egress, 180k vCPU-s. Then $0.40/1M req, $0.15–0.20/GiB'
+  agent_note: Blaze billing required; MCP tools only list backends and fetch logs.
+  checked: '2026-09-27'
+  pricing:
+  - label: Firebase App Hosting
+    url: https://firebase.google.com/docs/app-hosting/costs
+
+- id: azure-static-web-apps-hybrid
+  name: Azure Static Web Apps (hybrid)
+  category: frontend
+  vendor: azure
+  rec: 1
+  complexity: 2
+  free_tier: free
+  deploy: GitHub Actions
+  notes: Next.js hybrid rendering support.
+  use: Enterprise Next.js on Azure
+  popularity: 1
+  commercial: paid-plan
+  commercial_notes: Same plan rules as 3.1; hybrid Next.js support has feature gaps.
+  price: Same as 3.1
+  checked: '2026-09-27'
+  pricing:
+  - label: Azure SWA
+    url: https://azure.microsoft.com/en-us/pricing/details/app-service/static/
+
+- id: cloudflare-workers
+  name: Cloudflare Workers
+  category: serverless
+  vendor: cloudflare
+  rec: 3
+  complexity: 1
+  free_tier: free
+  runtimes: JS/TS, Python (beta), Wasm
+  deploy: '`wrangler deploy`'
+  notes: V8 isolates, KV / D1 / R2 / Durable Objects.
+  use: Edge APIs, proxies, auth, A/B testing
+  popularity: 3
+  commercial: allowed
+  commercial_notes: 'Free: daily request cap and 10 ms CPU. Paid plan for production traffic and Durable Objects scale.'
+  price: Free 100k req/day. Paid $5/mo incl. 10M req + 30M CPU-ms, then $0.30/1M req
+  checked: '2026-09-27'
+  pricing:
+  - label: Cloudflare Workers
+    url: https://developers.cloudflare.com/workers/platform/pricing/
+
+- id: aws-lambda
+  name: AWS Lambda (+ API Gateway / Function URL)
+  category: serverless
+  vendor: aws
+  rec: 3
+  complexity: 3
+  free_tier: free
+  runtimes: Node, Python, container images, others
+  deploy: SAM, CDK, Serverless Framework, Terraform
+  notes: Function URLs avoid API Gateway setup.
+  use: Enterprise event-driven backends, APIs, data pipelines
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Always-free monthly quota; beyond that pay-per-use. Cold-start (INIT) time is billed since 2025-08.
+  price: Free 1M req + 400k GB-s/mo. Then $0.20/1M req, $0.0000166667/GB-s (x86)
+  agent_note: Function URLs avoid API Gateway setup; Terraform / SAM / CDK all run headless.
+  checked: '2026-09-27'
+  pricing:
+  - label: Lambda
+    url: https://aws.amazon.com/lambda/pricing/
+
+- id: azure-functions
+  name: Azure Functions
+  category: serverless
+  vendor: azure
+  rec: 2
+  complexity: 3
+  free_tier: free
+  runtimes: Node, Python, .NET, others
+  deploy: '`func` CLI, VS Code, Actions'
+  notes: Flex Consumption plan.
+  use: Enterprise integrations, Microsoft 365 / .NET shops
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Monthly free grant on Flex Consumption (smaller than the old Consumption plan); production common.
+  price: Free 250k exec + 100k GB-s/mo. Then $0.40/1M exec, $0.000026/GB-s
+  agent_note: '`azd up` or `func azure functionapp publish`; fully headless with a service principal.'
+  checked: '2026-09-27'
+  pricing:
+  - label: Azure Functions
+    url: https://azure.microsoft.com/en-us/pricing/details/functions/
+
+- id: google-cloud-run-functions
+  name: Google Cloud Run functions
+  category: serverless
+  vendor: gcp
+  rec: 2
+  complexity: 2
+  free_tier: free
+  runtimes: Node, Python, Go, others
+  deploy: '`gcloud functions deploy`'
+  notes: Formerly Cloud Functions; runs on Cloud Run.
+  use: GCP event handlers, Firebase backends
+  popularity: 2
+  commercial: allowed
+  commercial_notes: Billed as Cloud Run; free monthly quota per billing account.
+  price: Free 2M req, 180k vCPU-s, 360k GiB-s/mo. Then $0.40/1M req, $0.000024/vCPU-s
+  agent_note: Same tooling and MCP as Cloud Run.
+  checked: '2026-09-27'
+  pricing:
+  - label: Cloud Run
+    url: https://cloud.google.com/run/pricing
+
+- id: deno-deploy
+  name: Deno Deploy
+  category: serverless
+  vendor: deno
+  rec: 2
+  complexity: 1
+  free_tier: free
+  runtimes: Deno / TS
+  deploy: Git integration, `deployctl` / `deno deploy`
+  use: Deno / TS APIs, edge apps, Fresh sites
+  popularity: 1
+  commercial: allowed
+  commercial_notes: Free tier has request and egress limits; paid plan for production scale.
+  price: Free 1M req, 20 GiB/mo. Pro $20/mo (5M req, 200 GiB)
+  checked: '2026-09-27'
+  pricing:
+  - label: Deno Deploy
+    url: https://deno.com/deploy/pricing
+
+- id: vercel-functions
+  name: Vercel Functions
+  category: serverless
+  vendor: vercel
+  rec: 1
+  complexity: 1
+  free_tier: free
+  runtimes: Node, Python, Edge
+  deploy: Git / CLI
+  notes: Usually covered by the Vercel SSR experiment.
+  use: API routes for Next.js apps
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: Follows Vercel plan rules (Hobby non-commercial).
+  price: 'Pro: $0.60/1M invocations, $0.128/CPU-hr, $0.0106/GB-hr (from the $20 credit first)'
+  checked: '2026-09-27'
+  pricing:
+  - label: Vercel Functions
+    url: https://vercel.com/docs/functions/usage-and-pricing
+
+- id: netlify-functions
+  name: Netlify Functions
+  category: serverless
+  vendor: netlify
+  rec: 1
+  complexity: 1
+  free_tier: free
+  runtimes: Node, Go
+  deploy: Git / CLI
+  use: API routes for Netlify sites
+  popularity: 2
+  commercial: allowed
+  commercial_notes: Counted against Netlify credits; execution time limits.
+  price: 'Credits: 10/GB-hr compute, 2 per 10k req (~$0.07/GB-hr on Pro)'
+  checked: '2026-09-27'
+  pricing:
+  - label: Netlify
+    url: https://www.netlify.com/pricing/
+
+- id: supabase-edge-functions
+  name: Supabase Edge Functions
+  category: serverless
+  vendor: supabase
+  rec: 1
+  complexity: 2
+  free_tier: free
+  runtimes: Deno
+  deploy: '`supabase functions deploy`'
+  notes: Pairs with Supabase Postgres.
+  use: Backends for Supabase apps
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: Free projects **pause after 1 week of inactivity**; use Pro for production.
+  price: 'Free: 2 projects, 500k function calls. Pro $25/mo (2M calls, then $2/1M; no pausing)'
+  checked: '2026-09-27'
+  pricing:
+  - label: Supabase
+    url: https://supabase.com/pricing
+
+- id: val-town
+  name: Val Town
+  category: serverless
+  vendor: valtown
+  rec: 1
+  complexity: 1
+  free_tier: free
+  runtimes: TS
+  deploy: Browser editor / CLI
+  notes: Tiny scripts and HTTP endpoints.
+  use: Scripts, webhooks, bots, prototypes
+  popularity: 1
+  commercial: paid-plan
+  commercial_notes: 'Free plan: new vals are public only, 10 crons per val. Not aimed at high-traffic production.'
+  price: Free. Pro $25/mo or $250/yr †
+  checked: '2026-09-27'
+  pricing:
+  - label: Val Town
+    url: https://www.val.town/pricing
+
+- id: google-cloud-run
+  name: Google Cloud Run
+  category: container
+  vendor: gcp
+  rec: 3
+  complexity: 2
+  free_tier: free
+  deploy: '`gcloud run deploy --source`, image push'
+  notes: Scale to zero, buildpacks from source.
+  use: Containerized APIs and web apps, startups to enterprise
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Monthly free quota; production-grade with SLA. Cold starts when scaled to zero.
+  price: Free 2M req, 180k vCPU-s, 360k GiB-s/mo. Then $0.000024/vCPU-s, $0.0000025/GiB-s, $0.40/1M req
+  agent_note: 'Most agent-friendly GCP target: one `gcloud run deploy --source`, and the GA remote MCP can deploy.'
+  checked: '2026-09-27'
+  pricing:
+  - label: Cloud Run
+    url: https://cloud.google.com/run/pricing
+
+- id: fly
+  name: Fly.io
+  category: container
+  vendor: fly
+  rec: 3
+  complexity: 2
+  free_tier: paid
+  deploy: '`fly deploy`'
+  notes: Firecracker micro-VMs, multi-region. Short trial only, then pay-as-you-go (from $3.89/mo).
+  use: Global low-latency apps, Elixir/Rails/Phoenix, side projects
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: No free allowance; trial is 2 machine-hours or 7 days. Pay-as-you-go.
+  price: shared-cpu-1x 256 MB $3.89/mo, 1 GB $15.55/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Fly.io
+    url: https://fly.io/docs/about/pricing/
+
+- id: render
+  name: Render
+  category: container
+  vendor: render
+  rec: 3
+  complexity: 1
+  free_tier: limited
+  deploy: Git integration, Blueprint (`render.yaml`)
+  notes: Free web services sleep when idle.
+  use: Startups, Heroku replacements
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: Free web services spin down after 15 min idle; free Postgres expires after 30 days. **Not suitable for production.**
+  price: Free instance (512 MB, 750 hr/mo). Starter $7/mo. Pro workspace $25/mo + compute
+  checked: '2026-09-27'
+  pricing:
+  - label: Render
+    url: https://render.com/pricing
+
+- id: azure-container-apps
+  name: Azure Container Apps
+  category: container
+  vendor: azure
+  rec: 2
+  complexity: 3
+  free_tier: free
+  deploy: '`az containerapp up`, image push'
+  notes: KEDA-based scaling, scale to zero.
+  use: Microservices on Azure, event-driven workers
+  popularity: 2
+  commercial: allowed
+  commercial_notes: Monthly free grant; production-grade.
+  price: Free 180k vCPU-s, 360k GiB-s, 2M req/mo. Then $0.000024/vCPU-s, $0.40/1M req
+  agent_note: '`azd up` provisions and deploys in one step.'
+  checked: '2026-09-27'
+  pricing:
+  - label: Azure Container Apps
+    url: https://azure.microsoft.com/pricing/details/container-apps/
+
+- id: railway
+  name: Railway
+  category: container
+  vendor: railway
+  rec: 2
+  complexity: 1
+  free_tier: limited
+  deploy: Git integration, `railway up`
+  notes: Trial credits; Railpack/Nixpacks auto-build.
+  use: Indie hackers, prototypes, small SaaS
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: $5 trial for 30 days, then a Free plan with $1/mo credit (1 vCPU / 0.5 GB per service). Hobby/Pro for real use.
+  price: Hobby $5/mo (incl. $5 usage). Pro $20/mo. ~$20/vCPU-mo, $10/GB RAM-mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Railway
+    url: https://railway.com/pricing
+
+- id: aws-ecs-on-fargate
+  name: AWS ECS on Fargate
+  category: container
+  vendor: aws
+  rec: 2
+  complexity: 4
+  free_tier: paid
+  deploy: CDK / Terraform / Copilot
+  notes: Full control; needs VPC, ALB, etc.
+  use: Enterprise containerized workloads
+  popularity: 3
+  commercial: paid-only
+  commercial_notes: No free tier for Fargate compute; ALB and NAT gateway add fixed costs.
+  price: $0.04048/vCPU-hr, $0.004445/GB-hr (x86); Arm ~20% cheaper
+  checked: '2026-09-27'
+  pricing:
+  - label: Fargate
+    url: https://aws.amazon.com/fargate/pricing/
+
+- id: hugging-face-spaces
+  name: Hugging Face Spaces
+  category: container
+  vendor: huggingface
+  rec: 2
+  complexity: 1
+  free_tier: free
+  deploy: Git push
+  notes: Gradio / Streamlit / Docker; ML demos.
+  use: ML demos, model showcases, research
+  popularity: 3
+  commercial: paid-plan
+  commercial_notes: Free CPU Spaces sleep when idle; GPUs are paid. Respect model/dataset licenses (many are non-commercial).
+  price: CPU Basic free (2 vCPU, 16 GB). CPU Upgrade $0.03/hr. PRO $9/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Hugging Face
+    url: https://huggingface.co/pricing
+
+- id: koyeb
+  name: Koyeb
+  category: container
+  vendor: koyeb
+  rec: 1
+  complexity: 1
+  free_tier: limited
+  deploy: Git / image / CLI
+  notes: Joining Mistral AI; free tier for new users unclear.
+  use: Global serverless containers, small apps
+  popularity: 1
+  commercial: paid-plan
+  commercial_notes: Joining Mistral AI; free tier for new signups is unclear †. Paid plans for production.
+  price: eco-nano $1.61/mo. Pro plan $29/mo (incl. $10 credit)
+  checked: '2026-09-27'
+  pricing:
+  - label: Koyeb
+    url: https://www.koyeb.com/pricing
+
+- id: northflank
+  name: Northflank
+  category: container
+  vendor: northflank
+  rec: 1
+  complexity: 2
+  free_tier: limited
+  deploy: Git / image
+  notes: Free sandbox project.
+  use: Dev teams wanting K8s-like features as PaaS
+  popularity: 1
+  commercial: paid-plan
+  commercial_notes: Free sandbox is for trying the platform (payment method required); paid for production.
+  price: Sandbox free. nf-compute-10 $2.70/mo; $0.01667/vCPU-hr
+  checked: '2026-09-27'
+  pricing:
+  - label: Northflank
+    url: https://northflank.com/pricing
+
+- id: zeabur
+  name: Zeabur
+  category: container
+  vendor: zeabur
+  rec: 1
+  complexity: 1
+  free_tier: limited
+  deploy: Git integration
+  use: Indie developers, popular in Asia
+  popularity: 1
+  commercial: paid-plan
+  commercial_notes: Free plan sleeps when idle, no SLA. Shared clusters are being phased out (2026).
+  price: Free. Dev $5/mo · Pro $19/mo · Team $79/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Zeabur
+    url: https://zeabur.com/pricing
+
+- id: digitalocean-app-platform
+  name: DigitalOcean App Platform
+  category: container
+  vendor: digitalocean
+  rec: 1
+  complexity: 2
+  free_tier: limited
+  deploy: Git / image, App Spec
+  notes: Free for static sites.
+  use: Small businesses, startups
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: Free only for static sites (3 apps); paid containers for dynamic apps.
+  price: Container from $5/mo (512 MiB)
+  checked: '2026-09-27'
+  pricing:
+  - label: DO App Platform
+    url: https://www.digitalocean.com/pricing/app-platform
+
+- id: azure-app-service
+  name: Azure App Service
+  category: container
+  vendor: azure
+  rec: 1
+  complexity: 2
+  free_tier: limited
+  deploy: '`az webapp up`, zip deploy, container'
+  notes: F1 free tier exists.
+  use: Enterprise web apps, .NET / Java
+  popularity: 3
+  commercial: paid-plan
+  commercial_notes: 'F1 free tier: 60 CPU-min/day, no SLA — dev/test only. Basic+ for production.'
+  price: F1 free. B1 Linux ~$12.41/mo ($0.017/hr)
+  agent_note: '`azd up` provisions and deploys in one step.'
+  checked: '2026-09-27'
+  pricing:
+  - label: Azure App Service
+    url: https://azure.microsoft.com/en-us/pricing/details/app-service/linux/
+
+- id: google-app-engine
+  name: Google App Engine
+  category: container
+  vendor: gcp
+  rec: 1
+  complexity: 2
+  free_tier: limited
+  deploy: '`gcloud app deploy`'
+  notes: Standard environment has free quotas. Legacy; prefer Cloud Run.
+  use: Legacy GCP web apps
+  popularity: 2
+  commercial: allowed
+  commercial_notes: Free daily quotas in Standard environment; Google now points new projects to Cloud Run.
+  price: Free 28 F-instance-hr/day. Then $0.05/instance-hr (F1)
+  checked: '2026-09-27'
+  pricing:
+  - label: App Engine
+    url: https://cloud.google.com/appengine/pricing
+
+- id: aws-app-runner
+  name: AWS App Runner
+  category: container
+  vendor: aws
+  rec: 1
+  complexity: 2
+  free_tier: closed
+  deploy: Image from ECR / source repo
+  notes: Closed to new customers since 2026-04-30. Use ECS Express Mode instead.
+  use: Simple container web services on AWS
+  popularity: 1
+  commercial: closed
+  commercial_notes: '**Closed to new customers since 2026-04-30**; maintenance mode. AWS recommends ECS Express Mode.'
+  price: $0.064/vCPU-hr + $0.007/GB-hr (existing customers only)
+  agent_note: Closed to new customers, so a new account cannot use it at all.
+  skipped: not available
+  checked: '2026-09-27'
+  pricing:
+  - label: App Runner
+    url: https://aws.amazon.com/apprunner/pricing/
+  - label: App Runner availability
+    url: https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html
+
+- id: aws-elastic-beanstalk
+  name: AWS Elastic Beanstalk
+  category: container
+  vendor: aws
+  rec: 1
+  complexity: 3
+  free_tier: limited
+  deploy: '`eb deploy`'
+  notes: Classic PaaS on EC2.
+  use: Legacy AWS web apps, lift-and-shift
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: Free itself; you pay for EC2 / ELB.
+  price: EC2 t4g.micro ~$6.13/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Elastic Beanstalk
+    url: https://aws.amazon.com/elasticbeanstalk/pricing/
+
+- id: heroku
+  name: Heroku
+  category: container
+  vendor: heroku
+  rec: 1
+  complexity: 1
+  free_tier: paid
+  deploy: '`git push heroku`, container registry'
+  notes: Buildpacks origin; no free dynos.
+  use: Rails/Node startups, legacy apps, enterprise (Salesforce)
+  popularity: 3
+  commercial: paid-only
+  commercial_notes: No free tier; Eco dynos sleep after 30 min; Basic+ for always-on.
+  price: Eco $5/mo · Basic $7/mo · Standard-1X $25/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Heroku
+    url: https://www.heroku.com/pricing
+
+- id: streamlit-community-cloud
+  name: Streamlit Community Cloud
+  category: container
+  vendor: streamlit
+  rec: 1
+  complexity: 1
+  free_tier: free
+  deploy: Git integration
+  notes: Streamlit apps only.
+  use: Data apps, internal dashboards, demos
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: Free and intended for sharing public apps; sleeps after 12 h without traffic. Use Snowflake / self-hosting for business-critical apps.
+  price: Free only (no paid self-serve tier)
+  checked: '2026-09-27'
+  pricing:
+  - label: Streamlit
+    url: https://streamlit.io/cloud
+
+- id: pythonanywhere
+  name: PythonAnywhere
+  category: container
+  vendor: pythonanywhere
+  rec: 1
+  complexity: 1
+  free_tier: free
+  deploy: Web UI / Git pull
+  notes: WSGI apps; limited outbound network on free tier.
+  use: Education, beginner Python web apps
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: 'Free: one app on `*.pythonanywhere.com`, 100 CPU-s/day, restricted outbound internet. Paid plans for custom domains and production.'
+  price: Free. Developer $10/mo (custom domain, SSH)
+  checked: '2026-09-27'
+  pricing:
+  - label: PythonAnywhere
+    url: https://www.pythonanywhere.com/pricing/
+
+- id: kind-minikube
+  name: kind / minikube (local)
+  category: kubernetes
+  vendor: local-k8s
+  rec: 3
+  complexity: 3
+  free_tier: free
+  notes: Local only; rehearse manifests before paying for a cluster.
+  use: Local development, CI testing
+  popularity: 3
+  commercial: n/a
+  commercial_notes: Local tools, not for hosting.
+  price: Free (OSS)
+  agent_note: No cloud account; needs local Docker or a VM.
+  checked: '2026-09-27'
+
+- id: k3s
+  name: k3s on a VPS
+  category: kubernetes
+  vendor: local-k8s
+  rec: 3
+  complexity: 5
+  free_tier: paid
+  notes: Self-managed, cheapest real cluster.
+  use: Edge / IoT, homelabs, small clusters
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Apache-2.0; you are responsible for operations and security.
+  price: Free (OSS); pay for hosts
+  agent_note: Installs over SSH (`curl -sfL https://get.k3s.io | sh`) once a VM exists.
+  checked: '2026-09-27'
+
+- id: gke-autopilot
+  name: GKE Autopilot
+  category: kubernetes
+  vendor: gcp
+  rec: 2
+  complexity: 4
+  free_tier: limited
+  notes: Cluster management fee credit for one cluster; pay per pod.
+  use: Production K8s without node management
+  popularity: 3
+  commercial: paid-only
+  commercial_notes: Pay per pod resources plus cluster fee (monthly credit covers one cluster).
+  price: Cluster $0.10/hr ($74.40/mo credit covers 1). Pods ~$0.0445/vCPU-hr †
+  agent_note: Needs `gke-gcloud-auth-plugin` for cluster access; the generic Kubernetes MCP works on top.
+  checked: '2026-09-27'
+  pricing:
+  - label: GKE
+    url: https://cloud.google.com/kubernetes-engine/pricing
+
+- id: azure-aks
+  name: Azure AKS
+  category: kubernetes
+  vendor: azure
+  rec: 1
+  complexity: 4
+  free_tier: limited
+  notes: Free control plane tier; pay for nodes.
+  use: Enterprise K8s on Azure
+  popularity: 3
+  commercial: paid-only
+  commercial_notes: Free tier control plane has no SLA; Standard tier for production.
+  price: Free tier $0. Standard $0.10/hr/cluster †
+  agent_note: '`az aks get-credentials` plus kubelogin for Entra-integrated clusters.'
+  checked: '2026-09-27'
+  pricing:
+  - label: AKS
+    url: https://azure.microsoft.com/en-us/pricing/details/kubernetes-service/
+
+- id: amazon-eks
+  name: Amazon EKS / EKS Auto Mode
+  category: kubernetes
+  vendor: aws
+  rec: 1
+  complexity: 5
+  free_tier: paid
+  notes: Control plane fee per cluster.
+  use: Enterprise K8s on AWS
+  popularity: 3
+  commercial: paid-only
+  commercial_notes: Hourly control plane fee plus nodes.
+  price: $0.10/hr/cluster (extended support $0.60/hr) + nodes
+  agent_note: 'Most moving parts on AWS: kubeconfig and access entries on top of IAM.'
+  checked: '2026-09-27'
+  pricing:
+  - label: EKS
+    url: https://aws.amazon.com/eks/pricing/
+
+- id: digitalocean-kubernetes
+  name: DigitalOcean Kubernetes
+  category: kubernetes
+  vendor: digitalocean
+  rec: 1
+  complexity: 4
+  free_tier: paid
+  notes: Free control plane; pay for nodes.
+  use: SMB and startup K8s
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: HA control plane is a paid option.
+  price: Control plane free. HA $40/mo. Nodes from $12/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: DOKS
+    url: https://www.digitalocean.com/pricing/kubernetes
+
+- id: civo
+  name: Civo
+  category: kubernetes
+  vendor: civo
+  rec: 1
+  complexity: 3
+  free_tier: limited
+  notes: Fast k3s clusters; trial credits.
+  use: Developer-focused fast k3s clusters
+  popularity: 1
+  commercial: paid-only
+  commercial_notes: $250 credit for new users, then paid.
+  price: Control plane free. Nodes from $5.43/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Civo
+    url: https://www.civo.com/pricing
+
+- id: oracle-cloud-always-free
+  name: Oracle Cloud Always Free
+  category: vm
+  vendor: oracle
+  rec: 3
+  complexity: 3
+  free_tier: free
+  notes: Arm (Ampere) 2 OCPU / 12 GB; capacity can be scarce in some regions.
+  use: Hobby servers, homelab-in-the-cloud
+  popularity: 2
+  commercial: paid-plan
+  commercial_notes: Commercial use allowed, but **idle Always Free instances can be reclaimed**; no SLA on free resources. Arm allowance halved in 2026-06.
+  price: 'Free: Ampere A1 2 OCPU / 12 GB, 2× AMD micro, 200 GB block'
+  checked: '2026-09-27'
+  pricing:
+  - label: Oracle Always Free
+    url: https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm
+
+- id: hetzner-cloud
+  name: Hetzner Cloud
+  category: vm
+  vendor: hetzner
+  rec: 3
+  complexity: 3
+  free_tier: paid
+  notes: Very cheap, EU/US regions.
+  use: Cost-sensitive production, EU hosting (●●● in the EU)
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: Strict acceptable use policy (e.g. no crypto mining); identity verification may be required. Prices raised 2026-06.
+  price: CX23 €5.49/mo · CAX11 €5.99/mo (2 vCPU / 4 GB); IPv4 +€0.50
+  checked: '2026-09-27'
+  pricing:
+  - label: Hetzner
+    url: https://www.hetzner.com/cloud
+
+- id: google-compute-engine
+  name: Google Compute Engine
+  category: vm
+  vendor: gcp
+  rec: 2
+  complexity: 3
+  free_tier: free
+  notes: One e2-micro in selected US regions.
+  use: General IaaS on GCP
+  popularity: 3
+  commercial: allowed
+  commercial_notes: Free e2-micro limited to us-west1 / us-central1 / us-east1; egress beyond 1 GB/mo is billed.
+  price: Free 1× e2-micro + 30 GB disk. $300 trial credit
+  checked: '2026-09-27'
+  pricing:
+  - label: GCP Free
+    url: https://docs.cloud.google.com/free/docs/free-cloud-features
+
+- id: aws-ec2-lightsail
+  name: AWS EC2 / Lightsail
+  category: vm
+  vendor: aws
+  rec: 2
+  complexity: 3
+  free_tier: limited
+  notes: Up to $200 credits over 6 months for new accounts; Lightsail is flat-priced.
+  use: General IaaS; Lightsail for simple servers
+  popularity: 3
+  commercial: allowed
+  commercial_notes: 'New accounts (since 2025-07): up to $200 credits over 6 months instead of 12-month free tier.'
+  price: Credits up to $200. Lightsail $5/mo (IPv4) or $3.50/mo (IPv6-only)
+  checked: '2026-09-27'
+  pricing:
+  - label: AWS Free
+    url: https://aws.amazon.com/free/
+  - label: Lightsail
+    url: https://aws.amazon.com/lightsail/pricing/
+
+- id: azure-virtual-machines
+  name: Azure Virtual Machines
+  category: vm
+  vendor: azure
+  rec: 1
+  complexity: 3
+  free_tier: limited
+  notes: 12-month free B1s for new accounts.
+  use: Enterprise IaaS, Windows workloads
+  popularity: 3
+  commercial: allowed
+  commercial_notes: 12-month free VMs for new accounts; then pay-as-you-go.
+  price: Free 750 hr/mo B1s / B2pts v2 / B2ats v2 for 12 months †
+  checked: '2026-09-27'
+  pricing:
+  - label: Azure Free
+    url: https://azure.microsoft.com/en-us/pricing/free-services
+
+- id: digitalocean-droplets
+  name: DigitalOcean Droplets
+  category: vm
+  vendor: digitalocean
+  rec: 1
+  complexity: 3
+  free_tier: paid
+  use: Developers, SMBs
+  popularity: 3
+  commercial: paid-only
+  commercial_notes: Standard commercial use.
+  price: From $4/mo (512 MiB)
+  checked: '2026-09-27'
+  pricing:
+  - label: DO Droplets
+    url: https://www.digitalocean.com/pricing/droplets
+
+- id: vultr-akamai
+  name: Vultr / Akamai (Linode)
+  category: vm
+  vendor:
+  - vultr
+  - akamai
+  rec: 1
+  complexity: 3
+  free_tier: paid
+  use: Developers, SMBs, global regions
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: Standard commercial use.
+  price: Vultr from $2.50/mo (IPv6-only) †. Linode Nanode $5/mo †
+  checked: '2026-09-27'
+  pricing:
+  - label: Vultr
+    url: https://www.vultr.com/pricing/
+  - label: Akamai
+    url: https://www.akamai.com/cloud/pricing
+
+- id: jp-vps
+  name: Sakura Cloud / ConoHa / Xserver VPS
+  category: vm
+  vendor:
+  - sakura
+  - conoha
+  - xserver
+  rec: 1
+  complexity: 3
+  free_tier: paid
+  notes: Japan-based providers.
+  use: Japanese businesses and developers
+  popularity: 2
+  commercial: paid-only
+  commercial_notes: Standard commercial use; Japan-local support, invoices in JPY. Xserver VPS new orders may be paused.
+  price: Sakura ¥1,540/mo (1 GB). ConoHa ¥751/mo (512 MB) †. Xserver ¥1,980/mo (2 GB, monthly)
+  checked: '2026-09-27'
+  pricing:
+  - label: Sakura Cloud
+    url: https://cloud.sakura.ad.jp/products/server/
+  - label: ConoHa
+    url: https://vps.conoha.jp/pricing/
+  - label: Xserver VPS
+    url: https://vps.xserver.ne.jp/price.php
+
+- id: kamal
+  name: Kamal
+  category: self-hosted
+  vendor: kamal
+  rec: 3
+  complexity: 3
+  notes: Zero-downtime Docker deploys over SSH from your laptop / CI.
+  use: Rails / Docker apps on own servers (by 37signals)
+  popularity: 2
+  commercial: allowed
+  commercial_notes: MIT license.
+  price: Free
+  checked: '2026-09-27'
+  pricing:
+  - label: Kamal
+    url: https://kamal-deploy.org
+
+- id: coolify
+  name: Coolify
+  category: self-hosted
+  vendor: coolify
+  rec: 3
+  complexity: 4
+  notes: Web UI, Git integration, Docker/Compose, automatic TLS.
+  use: Self-hosted Vercel/Heroku alternative for indie devs
+  popularity: 2
+  commercial: allowed
+  commercial_notes: Apache-2.0 when self-hosted; managed Coolify Cloud is paid.
+  price: Self-hosted free. Cloud $5/mo (2 servers), +$3/server
+  checked: '2026-09-27'
+  pricing:
+  - label: Coolify
+    url: https://coolify.io/pricing
+
+- id: dokku
+  name: Dokku
+  category: self-hosted
+  vendor: dokku
+  rec: 2
+  complexity: 3
+  notes: '"Mini Heroku": `git push dokku`, buildpacks.'
+  use: Heroku-style PaaS on a single server
+  popularity: 2
+  commercial: allowed
+  commercial_notes: MIT license.
+  price: Free. Optional Dokku Pro $849 one-time
+  checked: '2026-09-27'
+  pricing:
+  - label: Dokku Pro
+    url: https://pro.dokku.com
+
+- id: dokploy
+  name: Dokploy
+  category: self-hosted
+  vendor: dokploy
+  rec: 1
+  complexity: 4
+  notes: Similar to Coolify; Docker Swarm based.
+  use: Self-hosted PaaS, Docker Swarm
+  popularity: 1
+  commercial: paid-plan
+  commercial_notes: Apache-2.0 except a `/proprietary` folder under a separate license.
+  price: Self-hosted free. Cloud from $4.50/server/mo
+  checked: '2026-09-27'
+  pricing:
+  - label: Dokploy
+    url: https://dokploy.com/pricing
+
+- id: caprover
+  name: CapRover
+  category: self-hosted
+  vendor: caprover
+  rec: 1
+  complexity: 4
+  notes: One-click apps, Docker Swarm.
+  use: Self-hosted PaaS with one-click apps
+  popularity: 1
+  commercial: allowed
+  commercial_notes: Apache-2.0 license.
+  price: Free
+  checked: '2026-09-27'
+  pricing:
+  - label: CapRover
+    url: https://caprover.com

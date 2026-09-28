@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hosting Catalog</title>
+  <meta name="description" content="Filterable view of docs/catalog.yaml plus the docs/hosting-candidates.md guide.">
+  <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --card: #ffffff;
+      --text: #1b1b1f;
+      --muted: #6b6b76;
+      --border: #e3e3e8;
+      --accent: #2f6feb;
+      --accent-soft: #e8efff;
+      --row-hover: #f2f4f8;
+      --head: #f0f0f4;
+      --full: #1a7f37;   --full-bg: #dafbe1;
+      --high: #0969da;   --high-bg: #ddf4ff;
+      --partial: #9a6700; --partial-bg: #fff8c5;
+      --low: #cf222e;    --low-bg: #ffebe9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #111114;
+        --card: #1b1b20;
+        --text: #ececf1;
+        --muted: #9a9aa6;
+        --border: #2c2c34;
+        --accent: #6ea0ff;
+        --accent-soft: #1d2a45;
+        --row-hover: #23232a;
+        --head: #202027;
+        --full: #56d364;   --full-bg: #12361c;
+        --high: #6cb6ff;   --high-bg: #0f2a45;
+        --partial: #e3b341; --partial-bg: #3a2e0a;
+        --low: #ff7b72;    --low-bg: #4a1715;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #111114;
+      --card: #1b1b20;
+      --text: #ececf1;
+      --muted: #9a9aa6;
+      --border: #2c2c34;
+      --accent: #6ea0ff;
+      --accent-soft: #1d2a45;
+      --row-hover: #23232a;
+      --head: #202027;
+      --full: #56d364;   --full-bg: #12361c;
+      --high: #6cb6ff;   --high-bg: #0f2a45;
+      --partial: #e3b341; --partial-bg: #3a2e0a;
+      --low: #ff7b72;    --low-bg: #4a1715;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-padding-top: 120px; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    code {
+      font: 0.86em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: var(--head); border-radius: 4px; padding: 1px 4px;
+    }
+    [hidden] { display: none !important; }
+
+    /* Header */
+    header { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .bar {
+      max-width: 1480px; margin: 0 auto; padding: 12px 16px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    }
+    .brand { font-weight: 700; color: inherit; text-decoration: none; white-space: nowrap; }
+    .tabs { display: flex; gap: 4px; }
+    .tabs button, .seg button {
+      font: inherit; font-size: 0.9rem; cursor: pointer;
+      padding: 6px 12px; border-radius: 8px;
+      border: 1px solid transparent; background: none; color: var(--muted);
+    }
+    .tabs button[aria-selected="true"], .seg button[aria-pressed="true"] {
+      color: var(--text); background: var(--card); border-color: var(--border); font-weight: 600;
+    }
+    .search { flex: 1 1 240px; display: flex; align-items: center; gap: 8px; }
+    input[type="search"], select {
+      font: inherit; font-size: 0.9rem; padding: 7px 10px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--card); color: var(--text);
+    }
+    input[type="search"] { width: 100%; }
+    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .count { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+    .hint { font-size: 0.82rem; color: var(--muted); }
+
+    main { max-width: 1480px; margin: 0 auto; padding: 20px 16px 64px; }
+
+    /* Summary cards */
+    .cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 20px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .card .k { font-size: 0.8rem; color: var(--muted); }
+    .card .v { font-size: 1.4rem; font-weight: 700; margin-top: 2px; }
+    .card .s { font-size: 0.86rem; margin-top: 4px; }
+    .progress { height: 6px; background: var(--head); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+    .progress > div { height: 100%; background: var(--full); }
+    .dist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    /* Filters */
+    .filters { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin-bottom: 12px; }
+    .filters label { display: grid; gap: 2px; font-size: 0.75rem; color: var(--muted); }
+    .seg { display: flex; gap: 2px; background: var(--head); padding: 3px; border-radius: 10px; }
+    .seg button { padding: 5px 10px; font-size: 0.85rem; }
+    .filters .spacer { flex: 1; }
+    .reset { font: inherit; font-size: 0.85rem; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 6px; }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto; margin: 12px 0 20px;
+      border: 1px solid var(--border); border-radius: 10px; background: var(--card);
+    }
+    table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+    th, td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+    td { min-width: 80px; }
+    td.wide { min-width: 260px; }
+    #providers td:first-child { min-width: 150px; font-weight: 600; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: var(--row-hover); }
+    th { background: var(--head); font-weight: 600; white-space: nowrap; }
+    #providers th { cursor: pointer; user-select: none; position: relative; padding-right: 22px; }
+    #providers th::after { content: "↕"; position: absolute; right: 7px; color: var(--muted); opacity: 0.5; font-size: 0.8em; }
+    #providers th[aria-sort="ascending"]::after { content: "↑"; opacity: 1; color: var(--accent); }
+    #providers th[aria-sort="descending"]::after { content: "↓"; opacity: 1; color: var(--accent); }
+    tr.hidden { display: none; }
+    .no-match { font-size: 0.82rem; color: var(--muted); padding: 8px 12px; }
+    .nowrap { white-space: nowrap; }
+    .stars { letter-spacing: -1px; white-space: nowrap; }
+    .cat { font-size: 0.78rem; color: var(--muted); font-weight: 400; }
+
+    /* Provider rows */
+    #providers tbody tr.svc { cursor: pointer; }
+    #providers tbody tr.svc td:first-child::before {
+      content: "▸"; display: inline-block; width: 1em; color: var(--muted); transition: transform .15s;
+    }
+    #providers tbody tr.svc.open td:first-child::before { transform: rotate(90deg); }
+    #providers tbody tr.svc.open td { background: var(--accent-soft); }
+    tr.detail > td { background: var(--bg); padding: 0; }
+    .detail-body { padding: 14px 16px 18px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); font-weight: 400; }
+    .detail-body h4 { margin: 0 0 6px; font-size: 0.9rem; }
+    .detail-body dl { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 4px 12px; margin: 0; font-size: 0.86rem; }
+    .detail-body dt { color: var(--muted); }
+    .detail-body dd { margin: 0; }
+    .detail-body .permalink { grid-column: 1 / -1; font-size: 0.8rem; }
+
+    .badge {
+      display: inline-block; padding: 1px 8px; border-radius: 999px;
+      font-size: 0.78rem; font-weight: 700; white-space: nowrap;
+    }
+    .badge.full { color: var(--full); background: var(--full-bg); }
+    .badge.high { color: var(--high); background: var(--high-bg); }
+    .badge.partial { color: var(--partial); background: var(--partial-bg); }
+    .badge.low { color: var(--low); background: var(--low-bg); }
+    .badge.na { color: var(--muted); background: var(--head); }
+
+    /* Guide */
+    .guide { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 32px; }
+    nav.toc { position: sticky; top: 76px; align-self: start; max-height: calc(100vh - 96px); overflow: auto; }
+    nav.toc details { font-size: 0.86rem; }
+    nav.toc summary { cursor: pointer; font-weight: 600; margin-bottom: 8px; list-style: none; }
+    nav.toc ul { list-style: none; margin: 0; padding: 0; }
+    nav.toc li a { display: block; padding: 3px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; }
+    nav.toc li a:hover { background: var(--card); color: var(--text); }
+    nav.toc li.h3 a { padding-left: 20px; }
+    article h1 { font-size: 1.6rem; margin: 0 0 8px; }
+    article h2 { font-size: 1.3rem; margin: 40px 0 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+    article h3 { font-size: 1.08rem; margin: 28px 0 8px; }
+    article p, article li { max-width: 80ch; }
+    article blockquote {
+      margin: 12px 0; padding: 8px 14px; border-left: 3px solid var(--accent);
+      background: var(--accent-soft); border-radius: 0 8px 8px 0;
+    }
+    article blockquote p { margin: 4px 0; }
+    article hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+    .anchor { opacity: 0; margin-left: 6px; text-decoration: none; font-weight: 400; }
+    h2:hover .anchor, h3:hover .anchor { opacity: 0.6; }
+
+    .error { background: var(--low-bg); border: 1px solid var(--low); border-radius: 10px; padding: 16px; }
+
+    @media (max-width: 860px) {
+      .guide { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      nav.toc { position: static; max-height: none; }
+      html { scroll-padding-top: 150px; }
+      .detail-body { grid-template-columns: minmax(0, 1fr); }
+      .detail-body dl { grid-template-columns: 110px minmax(0, 1fr); }
+    }
+    .stale { color: var(--low); font-weight: 600; }
+    #roadmap tr.done td { background: var(--full-bg); }
+    #roadmap td:first-child { min-width: 0; font-weight: 700; }
+    #roadmap th { cursor: pointer; user-select: none; }
+    details.legend { margin: 0 0 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; }
+    details.legend summary { cursor: pointer; font-size: 0.86rem; font-weight: 600; }
+    #legend { display: grid; gap: 14px 24px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); padding: 10px 0 6px; font-size: 0.84rem; }
+    #legend h4 { margin: 0 0 4px; font-size: 0.86rem; }
+    #legend dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 10px; margin: 0; }
+    #legend dt { white-space: nowrap; }
+    #legend dd { margin: 0; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <a class="brand" href="./">Cloud Hosting Lab</a>
+      <div class="tabs" role="tablist"></div>
+      <label class="search">
+        <input id="q" type="search" placeholder="Search" aria-label="Search">
+        <span class="count" id="count"></span>
+      </label>
+    </div>
+  </header>
+
+  <main>
+    <div id="error" hidden></div>
+    <div class="cards" id="cards" hidden></div>
+
+    <section id="roadmap-view" hidden>
+      <div class="table-wrap"><table id="roadmap"><thead></thead><tbody></tbody></table>
+        <div class="no-match" hidden>No roadmap items match.</div>
+      </div>
+      <p class="hint">Progress is recorded only here (<code>roadmap</code> in <a class="src-yaml" target="_blank" rel="noopener">docs/catalog.yaml</a>).
+        Service status, the README project table, and the home page are derived from it.</p>
+    </section>
+
+    <section id="providers-view" hidden>
+      <div class="filters">
+        <label>Category <select id="f-category"></select></label>
+        <label>Agent rating <select id="f-rating"></select></label>
+        <label>MCP <select id="f-mcp"></select></label>
+        <label>Free tier <select id="f-free"></select></label>
+        <label>Tried <select id="f-tried"></select></label>
+        <button class="reset" id="reset" type="button">Reset</button>
+        <span class="spacer"></span>
+        <label>Columns
+          <span class="seg" id="views" role="group" aria-label="Column set"></span>
+        </label>
+      </div>
+      <details class="legend"><summary>Legend</summary><div id="legend"></div></details>
+      <div class="table-wrap"><table id="providers"><thead></thead><tbody></tbody></table>
+        <div class="no-match" hidden>No providers match these filters.</div>
+      </div>
+      <p class="hint">Click a row to see every field, sources, and when it was last checked.
+        Source: <a class="src-yaml" target="_blank" rel="noopener">docs/catalog.yaml</a></p>
+    </section>
+
+    <section id="guide-view" class="guide" hidden>
+      <nav class="toc" aria-label="Sections">
+        <details id="toc" open><summary>Sections</summary><ul></ul></details>
+      </nav>
+      <article id="doc"></article>
+    </section>
+  </main>
+
+  <script>
+    // Renders docs/catalog.yaml (roadmap, services, vendors, enums) and docs/hosting-candidates.md (guide) at runtime,
+    // so those files stay the single source of truth. Labels and legends come from `enums` in the YAML.
+    const REPO = "https://github.com/eimamura/cloud-hosting";
+    const DATA = "docs/catalog.yaml";
+    const GUIDE = "docs/hosting-candidates.md";
+    const STALE_DAYS = 180; // Keep in sync with the default of `tools/catalog.py check --max-age`.
+
+    const $ = (s, el = document) => el.querySelector(s);
+    const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const md = (s) => (s == null || s === "" ? "" : marked.parseInline(String(s)));
+    const slug = (text) => text.trim().toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, "").replace(/\s/g, "-");
+
+    let data, guideText, E, RATINGS;
+    const label = (enumName, key) => E[enumName]?.[key]?.label ?? String(key ?? "—");
+    const rank = (enumName, key) => Object.keys(E[enumName]).indexOf(String(key));
+    const badge = (r) => `<span class="badge ${esc(String(r).toLowerCase())}">${esc(r)}</span>`;
+    const scale = (enumName, n) => `<span class="stars" title="${esc(E[enumName]?.[n]?.description ?? n)}">${esc(label(enumName, n))}</span>`;
+    const dateStr = (d) => (d instanceof Date ? d.toISOString().slice(0, 10) : String(d ?? ""));
+    const ageDays = (d) => Math.floor((Date.now() - new Date(dateStr(d)).getTime()) / 86400000);
+    const checkedHtml = (d) => `<span class="nowrap${ageDays(d) > STALE_DAYS ? " stale" : ""}" title="${ageDays(d)} days ago">${esc(dateStr(d))}</span>`;
+    const linksHtml = (list) => (list ?? []).map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join(" · ");
+
+    const vendorsOf = (s) => (Array.isArray(s.vendor) ? s.vendor : [s.vendor]).map((id) => ({ id, ...data.vendors[id] }));
+    const serviceById = (id) => data.services.find((s) => s.id === id);
+    const bestRating = (s) => Math.min(...vendorsOf(s).map((v) => RATINGS.indexOf(v.rating)));
+    const mcpRank = (s) => Math.min(...vendorsOf(s).map((v) => rank("mcp", v.mcp?.status ?? "none")));
+    // A service closed to new customers is not operable, whatever the vendor's tooling.
+    const ratingHtml = (s) => (s.free_tier === "closed" ? '<span class="badge na">Closed</span>' : vendorsOf(s).map((v) => badge(v.rating)).join(" "));
+    const ratingKey = (s) => (s.free_tier === "closed" ? RATINGS.length : bestRating(s));
+
+    // A service's tried status is derived from the roadmap items that use it; `skipped` wins.
+    function triedOf(s) {
+      if (s.skipped) return { status: "skipped", note: s.skipped };
+      const items = data.roadmap.filter((r) => r.services.includes(s.id));
+      for (const status of ["done", "in-progress"]) {
+        const r = items.find((x) => x.status === status);
+        if (r) return { status, project: r.project, url: r.url, n: r.n };
+      }
+      return { status: "todo", n: items[0]?.n };
+    }
+
+    function triedHtml(s) {
+      const t = triedOf(s);
+      let out = `<span class="nowrap">${esc(label("status", t.status))}</span>`;
+      if (t.project) out += ` <a href="${REPO}/tree/main/${encodeURIComponent(t.project)}" target="_blank" rel="noopener">${esc(t.project)}</a>`;
+      if (t.note) out += `<div class="cat">${esc(t.note)}</div>`;
+      else if (t.n) out += `<div class="cat"><a href="#roadmap/${t.n}">Roadmap #${t.n}</a></div>`;
+      return out;
+    }
+
+    // ---------- Column sets ----------
+    const NAME = { label: "Provider", html: (s) => `${esc(s.name)}<div class="cat">${esc(label("category", s.category))}</div>`, key: (s) => s.name.toLowerCase() };
+    const CHECKED = { label: "Checked", html: (s) => checkedHtml(s.checked), key: (s) => dateStr(s.checked) };
+    const VENDOR_CHECKED = { label: "Checked", html: (s) => vendorsOf(s).map((v) => checkedHtml(v.checked)).join("<br>"), key: (s) => dateStr(vendorsOf(s)[0].checked) };
+    const VIEWS = {
+      overview: { label: "Overview", cols: [
+        NAME,
+        { label: "Rec", html: (s) => scale("rec", s.rec), key: (s) => s.rec },
+        { label: "Complexity", html: (s) => scale("complexity", s.complexity), key: (s) => s.complexity },
+        { label: "Free tier", html: (s) => `<span class="nowrap">${s.free_tier ? esc(label("free_tier", s.free_tier)) : "—"}</span>`, key: (s) => rank("free_tier", s.free_tier) },
+        { label: "Deploy", html: (s) => md(s.deploy ?? s.notes) || "—", key: (s) => s.deploy ?? s.notes ?? "", cls: "wide" },
+        { label: "Agent", html: ratingHtml, key: ratingKey },
+        { label: "MCP", html: (s) => `<span class="nowrap">${[...new Set(vendorsOf(s).map((v) => esc(label("mcp", v.mcp?.status ?? "none"))))].join("<br>")}</span>`, key: mcpRank },
+        { label: "Tried", html: triedHtml, key: (s) => rank("status", triedOf(s).status) },
+      ] },
+      pricing: { label: "Pricing & terms", cols: [
+        NAME,
+        { label: "Use domain", html: (s) => md(s.use), key: (s) => s.use, cls: "wide" },
+        { label: "Popularity", html: (s) => scale("popularity", s.popularity), key: (s) => s.popularity },
+        { label: "Commercial", html: (s) => `<span class="nowrap">${esc(label("commercial", s.commercial))}</span>`, key: (s) => rank("commercial", s.commercial) },
+        { label: "Caveats", html: (s) => md(s.commercial_notes), key: (s) => s.commercial_notes, cls: "wide" },
+        { label: "Price", html: (s) => md(s.price), key: (s) => s.price, cls: "wide" },
+        CHECKED,
+      ] },
+      agent: { label: "Agent tooling", cols: [
+        NAME,
+        { label: "Rating", html: ratingHtml, key: ratingKey },
+        { label: "CLI · token", html: (s) => perVendor(s, (v) => md(v.cli ?? v.api)), key: (s) => vendorsOf(s)[0].cli ?? "", cls: "wide" },
+        { label: "MCP", html: (s) => perVendor(s, (v) => `${esc(label("mcp", v.mcp?.status ?? "none"))}${v.mcp?.detail ? "<br>" + md(v.mcp.detail) : ""}`), key: mcpRank, cls: "wide" },
+        { label: "IaC", html: (s) => perVendor(s, (v) => md(v.iac) || "—"), key: (s) => vendorsOf(s)[0].iac ?? "", cls: "wide" },
+        { label: "Human-only", html: (s) => perVendor(s, (v) => md(v.human) || "—") + (s.agent_note ? `<div class="cat">${md(s.agent_note)}</div>` : ""), key: (s) => vendorsOf(s)[0].human ?? "", cls: "wide" },
+        VENDOR_CHECKED,
+      ] },
+    };
+
+    function perVendor(s, fn) {
+      const vs = vendorsOf(s);
+      return vs.length === 1 ? fn(vs[0]) : vs.map((v) => `<strong>${esc(v.name)}:</strong> ${fn(v)}`).join("<br>");
+    }
+
+    function detailHtml(s) {
+      const row = (k, v) => (v === undefined || v === null || v === "" ? "" : `<dt>${k}</dt><dd>${v}</dd>`);
+      const hosting = [
+        row("Category", esc(label("category", s.category))),
+        row("Recommendation", scale("rec", s.rec)),
+        row("Complexity", scale("complexity", s.complexity) + ` <span class="cat">${esc(E.complexity[s.complexity]?.description ?? "")}</span>`),
+        row("Free tier", s.free_tier && esc(label("free_tier", s.free_tier))),
+        row("Runtimes", md(s.runtimes)),
+        row("Deploy", md(s.deploy)),
+        row("Notes", md(s.notes)),
+        row("Tried", triedHtml(s)),
+      ].join("");
+      const terms = [
+        row("Use domain", md(s.use)),
+        row("Popularity", scale("popularity", s.popularity)),
+        row("Commercial use", esc(label("commercial", s.commercial))),
+        row("Caveats", md(s.commercial_notes)),
+        row("Price", md(s.price)),
+        row("Pricing sources", linksHtml(s.pricing)),
+        row("Checked", checkedHtml(s.checked)),
+      ].join("");
+      const vendors = vendorsOf(s).map((v) => `<div><h4>Agent tooling · ${esc(v.name)} ${badge(v.rating)}</h4><dl>${[
+        row("Rating note", md(v.rating_note)),
+        row("API", md(v.api)),
+        row("CLI · token", md(v.cli)),
+        row("MCP", `${esc(label("mcp", v.mcp?.status ?? "none"))}${v.mcp?.detail ? " — " + md(v.mcp.detail) : ""}`),
+        row("IaC", md(v.iac)),
+        row("Agent can do", md(v.agent_can)),
+        row("Human-only", md(v.human)),
+        row("Service note", md(s.agent_note)),
+        row("Sources", linksHtml(v.sources)),
+        row("Checked", checkedHtml(v.checked)),
+      ].join("")}</dl></div>`).join("");
+      return `<div class="detail-body">
+        <div><h4>Hosting</h4><dl>${hosting}</dl></div>
+        <div><h4>Use, terms &amp; price</h4><dl>${terms}</dl></div>
+        ${vendors}
+        <div class="permalink"><a href="#providers/${esc(s.id)}">Link to this provider</a> · id <code>${esc(s.id)}</code></div>
+      </div>`;
+    }
+
+    // ---------- Sortable table helper ----------
+    function renderTable(table, cols, rows, sortState, rowHtml, rerender) {
+      table.tHead.innerHTML = "<tr>" + cols.map((c, i) => {
+        const sort = sortState.sort && sortState.sort.col === i ? ` aria-sort="${sortState.sort.dir}"` : "";
+        return `<th tabindex="0" data-col="${i}"${sort}>${esc(c.label)}</th>`;
+      }).join("") + "</tr>";
+      for (const th of $$("th", table.tHead)) {
+        const go = () => {
+          const col = Number(th.dataset.col);
+          const dir = sortState.sort && sortState.sort.col === col && sortState.sort.dir === "ascending" ? "descending" : "ascending";
+          sortState.sort = { col, dir };
+          rerender();
+        };
+        th.addEventListener("click", go);
+        th.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+      }
+      if (sortState.sort) {
+        const key = cols[sortState.sort.col].key;
+        rows = [...rows].sort((a, b) => {
+          const [x, y] = [key(a), key(b)];
+          const c = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y));
+          return sortState.sort.dir === "ascending" ? c : -c;
+        });
+      }
+      table.tBodies[0].innerHTML = rows.map(rowHtml).join("");
+      for (const a of $$("a[href]", table.tBodies[0])) {
+        if (/^https?:/.test(a.getAttribute("href"))) { a.target = "_blank"; a.rel = "noopener"; }
+      }
+      $(".no-match", table.parentElement).hidden = rows.length > 0;
+      return rows;
+    }
+
+    const searchTerms = () => $("#q").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+    // ---------- Roadmap ----------
+    const roadState = { sort: null };
+    const ROAD_COLS = [
+      { label: "#", html: (r) => `<span id="r-${r.n}">${r.n}</span>`, key: (r) => r.n },
+      { label: "Experiment", html: (r) => `${esc(r.idea)}<div class="cat">${md(r.learn)}</div>`, key: (r) => r.idea, cls: "wide" },
+      { label: "Hosting", html: (r) => `${esc(r.hosting)}<div class="cat">${r.services.map((id) => `<a href="#providers/${esc(id)}">${esc(serviceById(id)?.name ?? id)}</a>`).join(" · ")}</div>`, key: (r) => r.hosting, cls: "wide" },
+      { label: "Workload", html: (r) => md(r.workload), key: (r) => r.workload },
+      { label: "Method", html: (r) => md(r.method), key: (r) => r.method },
+      { label: "Complexity", html: (r) => scale("complexity", r.complexity), key: (r) => r.complexity },
+      { label: "Agent", html: (r) => [...new Set(r.services.flatMap((id) => vendorsOf(serviceById(id)).map((v) => v.rating)))].map(badge).join(" "),
+        key: (r) => Math.min(...r.services.map((id) => bestRating(serviceById(id)))) },
+      { label: "Status", html: (r) => {
+          let out = `<span class="nowrap">${esc(label("status", r.status))}</span>`;
+          if (r.project) out += `<div><a href="${REPO}/tree/main/${encodeURIComponent(r.project)}">${esc(r.project)}</a></div>`;
+          if (r.url) out += `<div><a href="${esc(r.url)}">Live</a> <span class="cat">${esc(dateStr(r.date))}</span></div>`;
+          return out;
+        }, key: (r) => rank("status", r.status) },
+    ];
+
+    function renderRoadmap() {
+      const terms = searchTerms();
+      const rows = data.roadmap.filter((r) => {
+        const text = [r.idea, r.learn, r.hosting, r.workload, r.method, r.status, r.project, ...r.services].join(" ").toLowerCase();
+        return terms.every((t) => text.includes(t));
+      });
+      const shown = renderTable($("#roadmap"), ROAD_COLS, rows, roadState,
+        (r) => `<tr class="${r.status === "done" ? "done" : ""}">${ROAD_COLS.map((c) => `<td class="${c.cls ?? ""}">${c.html(r)}</td>`).join("")}</tr>`,
+        renderRoadmap);
+      $("#count").textContent = `${shown.length} / ${data.roadmap.length} items`;
+    }
+
+    // ---------- Providers ----------
+    const state = { view: "overview", sort: null, open: new Set() };
+    let FILTERS;
+
+    function setupFilters() {
+      FILTERS = [
+        ["f-category", "All categories", "category", (s, v) => s.category === v],
+        ["f-rating", "Any rating", "rating", (s, v) => vendorsOf(s).some((x) => x.rating === v)],
+        ["f-mcp", "Any MCP", "mcp", (s, v) => vendorsOf(s).some((x) => (x.mcp?.status ?? "none") === v)],
+        ["f-free", "Any free tier", "free_tier", (s, v) => s.free_tier === v],
+        ["f-tried", "Any status", "status", (s, v) => triedOf(s).status === v],
+      ];
+      for (const [id, all, enumName] of FILTERS) {
+        const sel = document.getElementById(id);
+        sel.innerHTML = `<option value="">${all}</option>` + Object.keys(E[enumName]).map((k) => `<option value="${esc(k)}">${esc(label(enumName, k))}</option>`).join("");
+        sel.addEventListener("change", renderProviders);
+      }
+      $("#reset").addEventListener("click", () => {
+        for (const [id] of FILTERS) document.getElementById(id).value = "";
+        $("#q").value = "";
+        state.sort = null;
+        renderProviders();
+      });
+      for (const [key, v] of Object.entries(VIEWS)) {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = v.label; b.dataset.view = key;
+        b.addEventListener("click", () => { state.view = key; state.sort = null; renderProviders(); });
+        $("#views").appendChild(b);
+      }
+    }
+
+    function renderLegend() {
+      const titles = { rating: "Agent rating", mcp: "MCP", free_tier: "Free tier", commercial: "Commercial use", complexity: "Complexity", rec: "Recommendation", popularity: "Popularity", status: "Tried" };
+      $("#legend").innerHTML = Object.entries(titles).map(([name, title]) => `<div><h4>${esc(title)}</h4><dl>${
+        Object.entries(E[name]).map(([k, v]) => `<dt>${name === "rating" ? badge(k) : esc(v.label)}</dt><dd>${esc(v.description ?? "")}</dd>`).join("")
+      }</dl></div>`).join("");
+    }
+
+    function searchText(s) {
+      const parts = [s.name, s.id, label("category", s.category), s.deploy, s.runtimes, s.notes, s.use, s.commercial_notes, s.price, s.agent_note, s.skipped];
+      for (const v of vendorsOf(s)) parts.push(v.name, v.api, v.cli, v.iac, v.human, v.rating, v.rating_note, v.agent_can, v.mcp?.detail);
+      return parts.filter(Boolean).join(" ").toLowerCase();
+    }
+
+    function renderProviders() {
+      const view = VIEWS[state.view];
+      for (const b of $$("#views button")) b.setAttribute("aria-pressed", String(b.dataset.view === state.view));
+      const terms = searchTerms();
+      const active = FILTERS.map(([id, , , fn]) => [document.getElementById(id).value, fn]).filter(([v]) => v);
+      const rows = data.services.filter((s) => {
+        const text = searchText(s);
+        return terms.every((t) => text.includes(t)) && active.every(([v, fn]) => fn(s, v));
+      });
+      const shown = renderTable($("#providers"), view.cols, rows, state, (s) => {
+        const open = state.open.has(s.id);
+        const cells = view.cols.map((c) => `<td class="${c.cls ?? ""}">${c.html(s)}</td>`).join("");
+        const detail = open ? `<tr class="detail"><td colspan="${view.cols.length}">${detailHtml(s)}</td></tr>` : "";
+        return `<tr class="svc${open ? " open" : ""}" data-id="${esc(s.id)}" id="p-${esc(s.id)}" tabindex="0" aria-expanded="${open}">${cells}</tr>${detail}`;
+      }, renderProviders);
+      for (const tr of $$("#providers tr.svc")) {
+        const toggle = (e) => {
+          if (e.target.closest("a")) return;
+          const id = tr.dataset.id;
+          state.open.has(id) ? state.open.delete(id) : state.open.add(id);
+          renderProviders();
+          document.getElementById(`p-${id}`)?.focus({ preventScroll: true });
+        };
+        tr.addEventListener("click", toggle);
+        tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(e); } });
+      }
+      $("#count").textContent = `${shown.length} / ${data.services.length} providers`;
+    }
+
+    // ---------- Summary cards ----------
+    function card(k, v, s = "", extra = "") {
+      return `<div class="card"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div>${extra}</div>`;
+    }
+
+    function renderCards() {
+      const svcs = data.services;
+      const vendors = Object.values(data.vendors);
+      const road = data.roadmap;
+      const done = road.filter((r) => r.status === "done").length;
+      const next = road.find((r) => r.status !== "done");
+      const pct = road.length ? Math.round((done / road.length) * 100) : 0;
+      const counts = Object.fromEntries(RATINGS.map((r) => [r, vendors.filter((v) => v.rating === r).length]));
+      const dates = [...svcs.map((s) => s.checked), ...vendors.map((v) => v.checked)].map(dateStr).sort();
+      const stale = dates.filter((d) => ageDays(d) > STALE_DAYS).length;
+      $("#cards").innerHTML = [
+        card("Roadmap progress", `${done} / ${road.length}`, next ? `Next: #${next.n} ${next.idea} · ${next.hosting}` : "All done",
+          `<div class="progress"><div style="width:${pct}%"></div></div>`),
+        card("Providers", String(svcs.length),
+          `${svcs.filter((s) => triedOf(s).status === "done").length} tried · ${svcs.filter((s) => s.free_tier === "free").length} with a free tier`),
+        card("Vendors by agent rating", String(vendors.length), "After a human hands over the first token",
+          `<div class="dist">${RATINGS.map((r) => `${badge(r).replace("</span>", ` ${counts[r]}</span>`)}`).join("")}</div>`),
+        card("Oldest check", dates[0] ?? "—", stale ? `${stale} entries older than ${STALE_DAYS} days` : `All entries checked within ${STALE_DAYS} days`),
+      ].join("");
+    }
+
+    // ---------- Guide ----------
+    function renderGuide() {
+      const article = $("#doc");
+      if (article.dataset.ready) return;
+      article.innerHTML = marked.parse(guideText, { gfm: true });
+      article.dataset.ready = "1";
+
+      for (const a of $$("a[href]", article)) {
+        const href = a.getAttribute("href");
+        if (/^[a-z]+:/i.test(href)) { a.target = "_blank"; a.rel = "noopener"; continue; }
+        if (href.startsWith("#")) { a.setAttribute("href", `#guide/${href.slice(1)}`); continue; }
+        const [path, frag] = href.split("#");
+        const resolved = new URL(path, new URL(GUIDE, "https://x/")).pathname.slice(1);
+        if (resolved === DATA || resolved === "catalog.html") { a.setAttribute("href", frag ? `#${frag}` : "#providers"); continue; }
+        const kind = /\.[a-z]+$/i.test(resolved) ? "blob" : "tree";
+        a.href = `${REPO}/${kind}/main/${resolved}${frag ? "#" + frag : ""}`;
+        a.target = "_blank"; a.rel = "noopener";
+      }
+      const ul = $("#toc ul");
+      for (const h of $$("h1, h2, h3", article)) {
+        const title = h.textContent;
+        h.id = slug(title);
+        if (h.tagName === "H1") continue;
+        const a = document.createElement("a");
+        a.className = "anchor"; a.href = `#guide/${h.id}`; a.textContent = "#";
+        a.setAttribute("aria-label", "Link to section");
+        h.appendChild(a);
+        const li = document.createElement("li");
+        li.className = h.tagName.toLowerCase();
+        const link = document.createElement("a");
+        link.href = `#guide/${h.id}`; link.textContent = title;
+        li.appendChild(link);
+        ul.appendChild(li);
+      }
+      for (const t of $$("table", article)) {
+        const wrap = document.createElement("div");
+        wrap.className = "table-wrap";
+        t.replaceWith(wrap);
+        wrap.appendChild(t);
+      }
+    }
+
+    function filterGuide() {
+      const terms = searchTerms();
+      let shown = 0, total = 0;
+      for (const row of $$("#doc tbody tr")) {
+        total++;
+        const ok = terms.every((t) => row.textContent.toLowerCase().includes(t));
+        row.classList.toggle("hidden", !ok);
+        if (ok) shown++;
+      }
+      $("#count").textContent = terms.length ? `${shown} / ${total} table rows` : "";
+    }
+
+    // ---------- Routing: #roadmap[/<n>], #providers[/<service-id>], #guide[/<heading-id>] ----------
+    const TABS = [["roadmap", "Roadmap"], ["providers", "Providers"], ["guide", "Guide"]];
+    let current;
+    function route() {
+      const [tab, id] = decodeURIComponent(location.hash.slice(1)).split("/");
+      const key = TABS.some(([k]) => k === tab) ? tab : "providers";
+      current = key;
+      for (const b of $$(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.key === key));
+      for (const [k] of TABS) $(`#${k}-view`).hidden = k !== key;
+      $("#cards").hidden = key === "guide";
+      $("#q").placeholder = { roadmap: "Search roadmap", providers: "Search providers (e.g. terraform, wrangler, OAuth)", guide: "Filter guide table rows" }[key];
+      document.title = `${TABS.find(([k]) => k === key)[1]} · Hosting Catalog`;
+      if (key === "roadmap") {
+        renderRoadmap();
+        if (id) document.getElementById(`r-${id}`)?.closest("tr")?.scrollIntoView();
+      } else if (key === "providers") {
+        if (id && serviceById(id)) {
+          for (const [fid] of FILTERS) document.getElementById(fid).value = "";
+          $("#q").value = "";
+          state.open.add(id);
+        }
+        renderProviders();
+        if (id) document.getElementById(`p-${id}`)?.scrollIntoView();
+      } else {
+        renderGuide();
+        filterGuide();
+        if (id) document.getElementById(id)?.scrollIntoView();
+        else window.scrollTo(0, 0);
+      }
+    }
+
+    async function main() {
+      for (const [key, name] of TABS) {
+        const b = document.createElement("button");
+        b.role = "tab"; b.dataset.key = key; b.textContent = name;
+        b.addEventListener("click", () => { location.hash = key; });
+        $(".tabs").appendChild(b);
+      }
+      for (const a of $$(".src-yaml")) a.href = `${REPO}/blob/main/${DATA}`;
+      try {
+        const [y, g] = await Promise.all([DATA, GUIDE].map(async (f) => {
+          const res = await fetch(f, { cache: "no-cache" });
+          if (!res.ok) throw new Error(`${f}: HTTP ${res.status}`);
+          return res.text();
+        }));
+        data = jsyaml.load(y);
+        guideText = g;
+      } catch (e) {
+        const box = $("#error");
+        box.hidden = false;
+        box.className = "error";
+        box.innerHTML = `<strong>Could not load the catalog data.</strong>
+          <p>Browsers block <code>fetch</code> on <code>file://</code>. Serve the repo root instead:
+          <code>python3 -m http.server</code>, then open <code>http://localhost:8000/catalog.html</code>.</p>
+          <p class="hint"></p>`;
+        $(".hint", box).textContent = String(e);
+        return;
+      }
+      E = data.enums;
+      RATINGS = Object.keys(E.rating);
+      setupFilters();
+      renderLegend();
+      renderCards();
+      if (matchMedia("(max-width: 860px)").matches) $("#toc").open = false;
+      $("#q").addEventListener("input", () => ({ roadmap: renderRoadmap, providers: renderProviders, guide: filterGuide })[current]());
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "/" && document.activeElement !== $("#q")) { e.preventDefault(); $("#q").focus(); }
+      });
+      addEventListener("hashchange", route);
+      route();
+    }
+    main();
+  </script>
+</body>
+</html>

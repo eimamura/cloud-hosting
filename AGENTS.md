@@ -18,9 +18,12 @@ It holds multiple **independent projects**. Each project picks whatever stack fi
 - **One project = one top-level directory.** Work only inside the target project unless the task is about the root.
 - **Git is managed at the root only.** Never run `git init` inside a project directory and never add nested
   repositories or submodules.
+- **The catalog is the single source of truth.** Provider facts and progress live only in `docs/catalog.yaml`
+  (`roadmap`, `vendors`, `services`, `enums`). Do not restate them in Markdown docs; link to the catalog instead.
+  When you re-verify an entry, update its `checked` date. Run `tools/catalog.py check` after every edit.
 - **The root is the entry point.** `index.html` at the root lists every project and links to its deployed URL.
-  When a project is added, removed, renamed, or its deployment URL changes, update `index.html` and the
-  project table in `README.md` in the same change.
+  It reads the roadmap in `docs/catalog.yaml`, and the project table in `README.md` is generated from it
+  (`tools/catalog.py sync`), so a project is registered by editing its roadmap item only.
 
 ## Language
 
@@ -35,9 +38,10 @@ It holds multiple **independent projects**. Each project picks whatever stack fi
 ├── README.md      # Overview and project table
 ├── .gitignore     # Root-level ignore rules covering all projects
 ├── index.html     # Entry point page linking to each deployment
-├── docs/          # Workspace-level docs (e.g. hosting-candidates.md)
+├── catalog.html   # Viewer for docs/catalog.yaml and docs/hosting-candidates.md
+├── docs/          # catalog.yaml (all provider facts + progress) and hosting-candidates.md (guide)
 ├── workloads/     # Reusable test apps: static-site, hono-api, fastapi-app
-├── tools/         # Shared scripts, e.g. smoke-test.sh
+├── tools/         # Shared scripts: smoke-test.sh, catalog.py (validate / sync the catalog)
 └── <project>/     # Independent deployment projects
 ```
 
@@ -45,12 +49,15 @@ It holds multiple **independent projects**. Each project picks whatever stack fi
 
 1. Create a top-level directory with a short kebab-case name that hints at the platform, e.g. `vercel-nextjs`,
    `cloudflare-workers-hono`, `aws-lambda-python`.
-2. Choose a workload from `workloads/` (see the roadmap in `docs/hosting-candidates.md`).
+2. Choose a workload from `workloads/` (see the roadmap in `docs/catalog.yaml` / `catalog.html#roadmap`).
    Add only platform-specific files that reference it.
 3. Add a `README.md` inside it describing: the hosting target, the workload used, how to deploy,
    how to verify (`tools/smoke-test.sh <url>`), and how to tear down.
 4. Add project-specific ignore rules to a `.gitignore` inside the project if the root one is not enough.
-5. Register the project in the root `index.html` (`projects` array) and in the root `README.md` table.
+5. Register it on its roadmap item in `docs/catalog.yaml`: `status` (`in-progress` / `done`), `project: <dir>`,
+   and once deployed `url` and `date`. If the experiment is not on the roadmap yet, append a new item.
+6. Run `tools/catalog.py sync` (updates the README table) and `tools/catalog.py check`. `index.html` and
+   `catalog.html` pick the change up automatically.
 
 ## Secrets
 

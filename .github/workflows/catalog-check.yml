@@ -1,0 +1,25 @@
+# Validates docs/catalog.yaml and everything derived from it (README project table, project dirs, doc links).
+# The same check also gates the GitHub Pages deploy (github-pages.yml).
+name: catalog-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+      - name: Validate catalog
+        run: |
+          pip install --quiet pyyaml
+          python tools/catalog.py check

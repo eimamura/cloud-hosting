@@ -1,6 +1,6 @@
 # github-pages
 
-Publishes the root entry page (`index.html`) to GitHub Pages. Roadmap item #1 in
+Publishes the root entry page (`index.html`) and the catalog viewer (`catalog.html` + `docs/`) to GitHub Pages. Roadmap item #1 in
 [docs/hosting-candidates.md](../docs/hosting-candidates.md).
 
 | Item | Value |
@@ -27,7 +27,7 @@ rather than in this directory.
 
 ## Deploy
 
-Automatic on push to `main` when `index.html`, this directory, or the workflow changes.
+Automatic on push to `main` when `index.html`, `catalog.html`, `docs/`, this directory, or the workflow changes.
 Manual run:
 
 ```bash
